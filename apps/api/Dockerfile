@@ -6,7 +6,7 @@ RUN apk add --no-cache libc6-compat
 # Setup yarn and turbo
 FROM alpine AS base
 RUN corepack enable && corepack prepare yarn@4.6.0 --activate
-RUN yarn global add turbo
+RUN npm install turbo@2.5.6 --global
 
 # Generate a partial monorepo with a pruned lockfile
 FROM base AS pruner
@@ -23,6 +23,10 @@ RUN yarn install --frozen-lockfile
  
 # Build the project
 COPY --from=pruner /app/out/full/ .
+
+# Generate Prisma Client
+RUN cd apps/api && yarn prisma-generate
+
 RUN turbo build --filter=api
 
 # Final image
@@ -38,6 +42,7 @@ COPY --from=builder --chown=nodejs:nodejs /app/apps/api/dist ./api/dist
 COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nodejs:nodejs /app/yarn.lock ./yarn.lock
 
+ENV NODE_ENV=development
 EXPOSE 3001
 
 CMD ["node", "./api/dist/main"]
