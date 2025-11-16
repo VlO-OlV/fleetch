@@ -1,12 +1,13 @@
 import { createParamDecorator } from '@nestjs/common';
 import { User } from 'generated/prisma';
 
-export type UserPayload = Omit<User, 'password'> & { tokenId?: string };
-
-export type JwtPayload = { sub: string };
-
 export const CurrentUser = createParamDecorator(
-  (field: keyof Omit<User, 'password'> | undefined, context) => {
+  (
+    field:
+      | (keyof Omit<User, 'password'> & { profilePicture?: string })
+      | undefined,
+    context,
+  ) => {
     const user: Omit<User, 'password'> = context
       .switchToHttp()
       .getRequest().user;

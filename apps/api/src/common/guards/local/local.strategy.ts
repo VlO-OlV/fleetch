@@ -6,18 +6,18 @@ import {
 import { PassportStrategy } from '@nestjs/passport';
 import * as bcrypt from 'bcrypt';
 import { Strategy } from 'passport-local';
-import { UserRepository } from 'src/database/repositories/user.repository';
+import { UserService } from 'src/modules/user/user.service';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
-  public constructor(private userRepository: UserRepository) {
+  public constructor(private userService: UserService) {
     super({
       usernameField: 'email',
     });
   }
 
   public async validate(email: string, password: string) {
-    const user = await this.userRepository.findOne({ email });
+    const user = await this.userService.findByEmail(email);
 
     if (!user) {
       throw new NotFoundException('User with such email not found');
