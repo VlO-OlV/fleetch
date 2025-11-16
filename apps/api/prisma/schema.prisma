@@ -25,18 +25,20 @@ enum State {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  password      String
-  username      String?
-  firstName     String         @map("first_name")
-  middleName    String?        @map("middle_name")
-  lastName      String         @map("last_name")
-  role          Role           @default(USER)
-  state         State          @default(PENDING)
-  tokens        Token[]
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @default(now()) @updatedAt @map("updated_at")
+  id             String        @id @default(uuid())
+  email          String        @unique
+  password       String
+  username       String?
+  firstName      String        @map("first_name")
+  middleName     String?       @map("middle_name")
+  lastName       String        @map("last_name")
+  profileImage   FileMetadata? @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
+  profileImageId String?       @unique @map("profile_image_id")
+  role           Role          @default(USER)
+  state          State         @default(PENDING)
+  tokens         Token[]
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at")
 
   @@map("users")
 }
@@ -55,4 +57,16 @@ model Token {
   createdAt DateTime  @default(now()) @map("created_at")
 
   @@map("tokens")
+}
+
+model FileMetadata {
+  id               String   @id @default(uuid())
+  name             String
+  type             String
+  key              String
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+  userProfileImage User?
+
+  @@map("files_metadata")
 }
