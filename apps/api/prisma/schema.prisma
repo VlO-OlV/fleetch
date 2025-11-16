@@ -34,7 +34,7 @@ model User {
   lastName      String         @map("last_name")
   role          Role           @default(USER)
   state         State          @default(PENDING)
-  refreshTokens Token[]
+  tokens        Token[]
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @default(now()) @updatedAt @map("updated_at")
 
@@ -43,6 +43,7 @@ model User {
 
 enum TokenType {
   REFRESH
+  PASSWORD
 }
 
 model Token {

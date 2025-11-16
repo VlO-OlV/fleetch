@@ -5,9 +5,9 @@ import * as bcrypt from 'bcrypt';
 import { Request } from 'express';
 import { TokenType } from 'generated/prisma';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { UserPayload } from 'src/common/decorators/current-user.decorator';
+import { UserPayload } from 'src/common/types';
 import { CookieUtils } from 'src/common/utils/cookie-utils';
-import { TokenRepository } from 'src/database/repositories/token.repository';
+import { TokenService } from 'src/modules/token/token.service';
 
 import { JwtStrategy } from '../jwt/jwt.strategy';
 
@@ -17,7 +17,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
   'jwt-refresh',
 ) {
   constructor(
-    private tokenRepository: TokenRepository,
+    private tokenService: TokenService,
     private jwtStrategy: JwtStrategy,
     configService: ConfigService,
   ) {
@@ -33,12 +33,12 @@ export class JwtRefreshStrategy extends PassportStrategy(
 
   async validate(
     request: Request,
-    payload: { sub: string },
+    payload: { userId: string },
   ): Promise<UserPayload> {
     const userPayload = await this.jwtStrategy.validate(payload);
     const refreshToken = await CookieUtils.extractTokenFromCookies(request);
 
-    const userTokens = await this.tokenRepository.findMany({
+    const userTokens = await this.tokenService.findMany({
       userId: userPayload.id,
       tokenType: TokenType.REFRESH,
     });

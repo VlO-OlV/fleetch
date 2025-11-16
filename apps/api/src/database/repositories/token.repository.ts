@@ -12,7 +12,7 @@ export class TokenRepository {
   };
 
   public async findOne(where: Prisma.TokenWhereInput) {
-    return this.prisma.token.findFirst({ where });
+    return this.prisma.token.findFirst({ where, orderBy: this.orderBy });
   }
 
   public async findMany(where: Prisma.TokenWhereInput) {
@@ -26,16 +26,19 @@ export class TokenRepository {
     return this.prisma.token.create({ data });
   }
 
-  public async updateById(id: string, data: Prisma.TokenUncheckedUpdateInput) {
+  public async updateOne(
+    where: Prisma.TokenWhereUniqueInput,
+    data: Prisma.TokenUncheckedUpdateInput,
+  ) {
     return this.prisma.token.update({
-      where: { id },
+      where,
       data: { ...data },
     });
   }
 
-  public async deleteById(id: string) {
+  public async deleteOne(where: Prisma.TokenWhereUniqueInput) {
     return this.prisma.token.delete({
-      where: { id },
+      where,
     });
   }
 

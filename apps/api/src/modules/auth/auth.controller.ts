@@ -1,16 +1,18 @@
-import { Controller, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
-import {
-  CurrentUser,
-  UserPayload,
-} from 'src/common/decorators/current-user.decorator';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { GoogleAuthGuard } from 'src/common/guards/google/google-auth.guard';
 import { JwtGuard } from 'src/common/guards/jwt/jwt.guard';
 import { JwtRefreshGuard } from 'src/common/guards/jwt-refresh/jwt-refresh.guard';
 import { LocalGuard } from 'src/common/guards/local/local.guard';
+import { UserPayload } from 'src/common/types';
 import { CookieUtils } from 'src/common/utils/cookie-utils';
 
 import { AuthService } from './auth.service';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto';
+import { ResetPasswordDto } from './dtos/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -79,5 +81,39 @@ export class AuthController {
     res.clearCookie('refreshToken');
 
     return this.authService.logout(userWithoutToken);
+  }
+
+  @UseGuards(GoogleAuthGuard)
+  @Get('google/callback')
+  public async googleAuthCallback(
+    @Res({ passthrough: true }) res: Response,
+    @CurrentUser() user: UserPayload,
+  ) {
+    const tokens = await this.authService.login(user);
+
+    CookieUtils.setTokenCookie(
+      res,
+      tokens.refreshToken,
+      this.configService.get<number>('auth.refreshTTL'),
+    );
+
+    return {
+      accessToken: tokens.accessToken,
+    };
+  }
+
+  @Throttle({ default: { ttl: 60000, limit: 1 } })
+  @Post('/password/forgot')
+  public async forgotPassword(@Body() body: ForgotPasswordDto) {
+    return this.authService.requestPasswordReset({ ...body });
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('/password/reset')
+  public async resetPassword(
+    @Body() body: ResetPasswordDto,
+    @CurrentUser() user: UserPayload,
+  ) {
+    return this.authService.resetPassword(user.id, body);
   }
 }

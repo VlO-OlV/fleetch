@@ -10,4 +10,14 @@ export class UserRepository {
   public async findOne(where: Prisma.UserWhereInput) {
     return this.prisma.user.findFirst({ where });
   }
+
+  public async updateOne(
+    where: Prisma.UserWhereUniqueInput,
+    data: Prisma.UserUncheckedUpdateInput,
+  ) {
+    return this.prisma.user.update({
+      where,
+      data: { ...data },
+    });
+  }
 }
