@@ -1,12 +1,11 @@
-import { Injectable } from "@nestjs/common";
-import { PrismaService } from "../prisma.service";
-import { Prisma } from "generated/prisma";
+import { Injectable } from '@nestjs/common';
+import { Prisma } from 'generated/prisma';
+
+import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class FileRepository {
-  public constructor(
-    private prisma: PrismaService,
-  ) {}
+  public constructor(private prisma: PrismaService) {}
 
   public async findOne(where: Prisma.FileMetadataWhereInput) {
     return this.prisma.fileMetadata.findFirst({
