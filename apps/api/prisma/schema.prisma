@@ -14,9 +14,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
+enum UserRole {
   ADMIN
-  USER
+  OPERATOR
 }
 
 enum State {
@@ -28,15 +28,16 @@ model User {
   id             String        @id @default(uuid())
   email          String        @unique
   password       String
-  username       String?
+  phoneNumber    String?       @map("phone_number")
   firstName      String        @map("first_name")
   middleName     String?       @map("middle_name")
   lastName       String        @map("last_name")
   profileImage   FileMetadata? @relation(fields: [profileImageId], references: [id], onDelete: SetNull)
   profileImageId String?       @unique @map("profile_image_id")
-  role           Role          @default(USER)
+  role           UserRole      @default(OPERATOR)
   state          State         @default(PENDING)
   tokens         Token[]
+  rides          Ride[]
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at")
 
@@ -69,4 +70,130 @@ model FileMetadata {
   userProfileImage User?
 
   @@map("files_metadata")
+}
+
+enum RideStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  UPCOMING
+  CANCELLED
+  CANCELLED_BY_DRIVER
+}
+
+enum PaymentType {
+  CASH
+  CARD
+  CRYPTO
+}
+
+model Ride {
+  id               String            @id @default(uuid())
+  operator         User?             @relation(fields: [operatorId], references: [id], onDelete: SetNull)
+  operatorId       String?           @map("operator_id")
+  client           Client?           @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  clientId         String?           @map("client_id")
+  driver           Driver?           @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  driverId         String?           @map("driver_id")
+  status           RideStatus        @default(PENDING)
+  paymentType      PaymentType       @default(CASH) @map("payment_type")
+  totalPrice       Float             @map("total_price")
+  rideClass        RideClass         @relation(fields: [rideClassId], references: [id], onDelete: Cascade)
+  rideClassId      String            @map("ride_class_id")
+  locations        Location[]
+  rideExtraOptions RideExtraOption[]
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at")
+
+  @@map("rides")
+}
+
+model Client {
+  id          String   @id @default(uuid())
+  firstName   String   @map("first_name")
+  middleName  String?  @map("middle_name")
+  lastName    String   @map("last_name")
+  phoneNumber String?  @map("phone_number")
+  rides       Ride[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("clients")
+}
+
+enum DriverStatus {
+  ACTIVE
+  INACTIVE
+  IN_RIDE
+}
+
+model Driver {
+  id          String       @id @default(uuid())
+  firstName   String       @map("first_name")
+  middleName  String?      @map("middle_name")
+  lastName    String       @map("last_name")
+  phoneNumber String?      @map("phone_number")
+  rideClass   RideClass    @relation(fields: [rideClassId], references: [id], onDelete: Cascade)
+  rideClassId String       @map("ride_class_id")
+  status      DriverStatus @default(INACTIVE)
+  totalRides  Int          @default(0) @map("total_rides")
+  carNumber   String       @map("car_number")
+  rides       Ride[]
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at")
+
+  @@map("drivers")
+}
+
+model RideClass {
+  id               String   @id @default(uuid())
+  name             String
+  priceCoefficient Float    @default(1) @map("price_coefficient")
+  drivers          Driver[]
+  rides            Ride[]
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("ride_classes")
+}
+
+enum LocationType {
+  START
+  INTERMEDIATE
+  END
+}
+
+model Location {
+  id        String       @id @default(uuid())
+  ride      Ride         @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  rideId    String       @map("ride_id")
+  latitude  Float
+  longitude Float
+  type      LocationType @default(START)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @default(now()) @updatedAt @map("updated_at")
+
+  @@map("locations")
+}
+
+model RideExtraOption {
+  id            String      @id @default(uuid())
+  ride          Ride        @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  rideId        String      @map("ride_id")
+  extraOption   ExtraOption @relation(fields: [extraOptionId], references: [id], onDelete: Cascade)
+  extraOptionId String      @map("extra_option_id")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @default(now()) @updatedAt @map("updated_at")
+
+  @@map("ride_extra_options")
+}
+
+model ExtraOption {
+  id               String            @id @default(uuid())
+  name             String
+  rideExtraOptions RideExtraOption[]
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at")
+
+  @@map("extra_options")
 }
