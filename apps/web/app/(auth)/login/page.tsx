@@ -1,0 +1,97 @@
+"use client"
+
+import Link from "next/link"
+import Image from "next/image"
+import { useForm } from "react-hook-form"
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+
+type LoginValues = {
+  email: string
+  password: string
+}
+
+export default function LoginPage() {
+  const form = useForm<LoginValues>({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  })
+
+  function onSubmit(values: LoginValues) {
+    // Placeholder: wire to your auth logic
+    console.log("Sign in", values)
+    alert("Sign in: " + values.email)
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50 px-4 md:px-8">
+      <div className="flex flex-col items-center w-full rounded-md bg-white p-6 shadow-md">
+        <div className="flex items-center gap-4 mb-4">
+          <Image src="/logo.png" alt="logo" width={120} height={120} />
+        </div>
+        <h1 className="text-xl font-semibold mb-4">Login</h1>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col w-full gap-3">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="flex-1">
+              Sign in
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => alert("Google sign-in placeholder")}
+            >
+              <p>Sign in with Google</p>
+              <Image src="/google-logo.png" alt="google-logo" width={20} height={20} />
+            </Button>
+
+            <div className="flex justify-end text-sm mt-2">
+              <Link href="/forgot-password" className="text-sky-600">
+                Forgot password?
+              </Link>
+            </div>
+          </form>
+        </Form>
+      </div>
+    </div>
+  )
+}
