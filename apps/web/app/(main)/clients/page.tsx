@@ -1,6 +1,6 @@
-"use client"
+'use client';
 
-import { useMemo, useState } from "react"
+import { useMemo, useState } from 'react';
 import {
   Table,
   TableHeader,
@@ -8,34 +8,47 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "@/components/ui/table"
-import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from "@/components/ui/pagination"
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+} from '@/components/ui/pagination';
 
-type Client = { id: string; name: string; email: string }
+type Client = { id: string; name: string; email: string };
 
 function makeClients(count = 35) {
   return Array.from({ length: count }).map((_, i) => ({
     id: String(2000 + i),
     name: `Client ${i + 1}`,
     email: `client${i + 1}@example.com`,
-  })) as Client[]
+  })) as Client[];
 }
 
 export default function ClientsPage() {
-  const data = useMemo(() => makeClients(35), [])
-  const [page, setPage] = useState(1)
-  const pageSize = 10
-  const pageCount = Math.ceil(data.length / pageSize)
-  const items = data.slice((page - 1) * pageSize, page * pageSize)
+  const data = useMemo(() => makeClients(35), []);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const pageCount = Math.ceil(data.length / pageSize);
+  const items = data.slice((page - 1) * pageSize, page * pageSize);
 
-  const [open, setOpen] = useState(false)
-  const [selected, setSelected] = useState<Client | null>(null)
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<Client | null>(null);
 
   function openProfile(c: Client) {
-    setSelected(c)
-    setOpen(true)
+    setSelected(c);
+    setOpen(true);
   }
 
   return (
@@ -72,17 +85,24 @@ export default function ClientsPage() {
           <Pagination className="mt-4">
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious onClick={() => setPage((p) => Math.max(1, p - 1))} />
+                <PaginationPrevious
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                />
               </PaginationItem>
               {Array.from({ length: pageCount }).map((_, i) => (
                 <PaginationItem key={i}>
-                  <PaginationLink isActive={page === i + 1} onClick={() => setPage(i + 1)}>
+                  <PaginationLink
+                    isActive={page === i + 1}
+                    onClick={() => setPage(i + 1)}
+                  >
                     {i + 1}
                   </PaginationLink>
                 </PaginationItem>
               ))}
               <PaginationItem>
-                <PaginationNext onClick={() => setPage((p) => Math.min(pageCount, p + 1))} />
+                <PaginationNext
+                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
@@ -94,9 +114,15 @@ export default function ClientsPage() {
             <DialogDescription>
               {selected ? (
                 <div className="mt-2">
-                  <p><strong>ID:</strong> {selected.id}</p>
-                  <p><strong>Name:</strong> {selected.name}</p>
-                  <p><strong>Email:</strong> {selected.email}</p>
+                  <p>
+                    <strong>ID:</strong> {selected.id}
+                  </p>
+                  <p>
+                    <strong>Name:</strong> {selected.name}
+                  </p>
+                  <p>
+                    <strong>Email:</strong> {selected.email}
+                  </p>
                 </div>
               ) : (
                 <p>No client selected</p>
@@ -109,5 +135,5 @@ export default function ClientsPage() {
         </Dialog>
       </main>
     </div>
-  )
+  );
 }

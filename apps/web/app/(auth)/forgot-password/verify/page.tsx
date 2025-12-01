@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import Link from "next/link"
-import { useForm } from "react-hook-form"
+import Link from 'next/link';
+import { useForm } from 'react-hook-form';
 import {
   Form,
   FormField,
@@ -9,26 +9,31 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from "@/components/ui/form"
-import { Button } from "@/components/ui/button"
-import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp"
-import Image from "next/image"
+} from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from '@/components/ui/input-otp';
+import Image from 'next/image';
 
 type VerifyOTPValues = {
-  otp: string
-}
+  otp: string;
+};
 
 export default function VerifyOTPPage() {
   const form = useForm<VerifyOTPValues>({
     defaultValues: {
-      otp: "",
+      otp: '',
     },
-  })
+  });
 
   function onSubmit(values: VerifyOTPValues) {
     // Placeholder: wire to your OTP verification logic
-    console.log("Verify OTP", values.otp)
-    alert("OTP verified: " + values.otp)
+    console.log('Verify OTP', values.otp);
+    alert('OTP verified: ' + values.otp);
   }
 
   return (
@@ -38,10 +43,15 @@ export default function VerifyOTPPage() {
           <Image src="/logo.png" alt="logo" width={120} height={120} />
         </div>
         <h1 className="text-xl font-semibold mb-2">Verify email</h1>
-        <p className="text-sm text-gray-600 mb-6">Enter the code sent to your email</p>
+        <p className="text-sm text-gray-600 mb-6">
+          Enter the code sent to your email
+        </p>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col w-full gap-6">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col w-full gap-6"
+          >
             <FormField
               control={form.control}
               name="otp"
@@ -81,5 +91,5 @@ export default function VerifyOTPPage() {
         </Form>
       </div>
     </div>
-  )
+  );
 }

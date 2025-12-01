@@ -1,9 +1,9 @@
-import Image from "next/image"
+import Image from 'next/image';
 
 export default function AuthLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <div className="min-h-screen flex">
@@ -15,9 +15,7 @@ export default function AuthLayout({
           className="object-cover object-left"
         />
       </div>
-      <div className="w-1/2 min-h-screen flex flex-col">
-        {children}
-      </div>
+      <div className="w-1/2 min-h-screen flex flex-col">{children}</div>
     </div>
-  )
+  );
 }

@@ -1,7 +1,12 @@
 'use client';
 
 import { FC, useState } from 'react';
-import { GoogleMap, LoadScript, Marker, DirectionsRenderer } from '@react-google-maps/api';
+import {
+  GoogleMap,
+  LoadScript,
+  Marker,
+  DirectionsRenderer,
+} from '@react-google-maps/api';
 
 const containerStyle = {
   width: '100%',
@@ -15,7 +20,8 @@ const defaultCenter = {
 
 const GoogleMapComponent: FC = () => {
   const [locations, setLocations] = useState<google.maps.LatLngLiteral[]>([]);
-  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+  const [directions, setDirections] =
+    useState<google.maps.DirectionsResult | null>(null);
   const [distance, setDistance] = useState<string | null>(null);
   const [duration, setDuration] = useState<string | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -59,19 +65,29 @@ const GoogleMapComponent: FC = () => {
         if (status === google.maps.DirectionsStatus.OK && result) {
           setDirections(result);
           // Sum up total distance and duration from all legs
-          const totalDistance = result.routes[0].legs.reduce((acc, leg) => acc + (leg.distance?.value || 0), 0) / 1000; // in km
-          const totalDuration = result.routes[0].legs.reduce((acc, leg) => acc + (leg.duration?.value || 0), 0) / 60; // in minutes
+          const totalDistance =
+            result.routes[0].legs.reduce(
+              (acc, leg) => acc + (leg.distance?.value || 0),
+              0,
+            ) / 1000; // in km
+          const totalDuration =
+            result.routes[0].legs.reduce(
+              (acc, leg) => acc + (leg.duration?.value || 0),
+              0,
+            ) / 60; // in minutes
           setDistance(`${totalDistance.toFixed(1)} km`);
           setDuration(`${Math.round(totalDuration)} minutes`);
         } else {
           console.error('Error fetching directions:', status);
         }
-      }
+      },
     );
   };
 
   return (
-    <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
+    <LoadScript
+      googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
+    >
       <GoogleMap
         mapContainerStyle={containerStyle}
         center={defaultCenter}
@@ -88,7 +104,11 @@ const GoogleMapComponent: FC = () => {
         {directions && <DirectionsRenderer directions={directions} />}
       </GoogleMap>
       <button onClick={calculateRoute}>Calculate and Render Route</button>
-      {distance && <p>Total Distance: {distance} (Estimated Duration: {duration})</p>}
+      {distance && (
+        <p>
+          Total Distance: {distance} (Estimated Duration: {duration})
+        </p>
+      )}
     </LoadScript>
   );
 };

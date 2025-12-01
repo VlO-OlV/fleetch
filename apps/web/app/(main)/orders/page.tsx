@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import { useMemo, useState } from "react"
-import Link from "next/link"
+import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   Table,
   TableHeader,
@@ -9,12 +9,12 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "@/components/ui/table"
+} from '@/components/ui/table';
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "@/components/ui/popover"
+} from '@/components/ui/popover';
 import {
   Pagination,
   PaginationContent,
@@ -22,32 +22,32 @@ import {
   PaginationLink,
   PaginationPrevious,
   PaginationNext,
-} from "@/components/ui/pagination"
-import { Button } from "@/components/ui/button"
+} from '@/components/ui/pagination';
+import { Button } from '@/components/ui/button';
 
 type Order = {
-  id: string
-  customer: string
-  status: string
-  amount: string
-}
+  id: string;
+  customer: string;
+  status: string;
+  amount: string;
+};
 
 function makeOrders(count = 50) {
   return Array.from({ length: count }).map((_, i) => ({
     id: String(1000 + i),
     customer: `Client ${i + 1}`,
-    status: i % 3 === 0 ? "delivered" : i % 3 === 1 ? "in transit" : "pending",
+    status: i % 3 === 0 ? 'delivered' : i % 3 === 1 ? 'in transit' : 'pending',
     amount: `$${(Math.random() * 200).toFixed(2)}`,
-  })) as Order[]
+  })) as Order[];
 }
 
 export default function OrdersPage() {
-  const data = useMemo(() => makeOrders(53), [])
-  const [page, setPage] = useState(1)
-  const pageSize = 10
+  const data = useMemo(() => makeOrders(53), []);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
 
-  const pageCount = Math.ceil(data.length / pageSize)
-  const pageItems = data.slice((page - 1) * pageSize, page * pageSize)
+  const pageCount = Math.ceil(data.length / pageSize);
+  const pageItems = data.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div className="w-full bg-zinc-50">
@@ -74,15 +74,26 @@ export default function OrdersPage() {
                   <TableCell>
                     <Popover>
                       <PopoverTrigger>
-                        <Button size="icon" variant="ghost">⋯</Button>
+                        <Button size="icon" variant="ghost">
+                          ⋯
+                        </Button>
                       </PopoverTrigger>
                       <PopoverContent>
                         <div className="flex flex-col gap-2">
-                          <Link href={`/orders/${row.id}`} className="text-sky-600">
+                          <Link
+                            href={`/orders/${row.id}`}
+                            className="text-sky-600"
+                          >
                             View
                           </Link>
-                          <a onClick={() => alert("Edit " + row.id)}>Edit</a>
-                          <a onClick={() => confirm("Delete order?") && alert("Deleted")}>Delete</a>
+                          <a onClick={() => alert('Edit ' + row.id)}>Edit</a>
+                          <a
+                            onClick={() =>
+                              confirm('Delete order?') && alert('Deleted')
+                            }
+                          >
+                            Delete
+                          </a>
                         </div>
                       </PopoverContent>
                     </Popover>
@@ -110,12 +121,14 @@ export default function OrdersPage() {
                 </PaginationItem>
               ))}
               <PaginationItem>
-                <PaginationNext onClick={() => setPage((p) => Math.min(pageCount, p + 1))} />
+                <PaginationNext
+                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
         </div>
       </main>
     </div>
-  )
+  );
 }

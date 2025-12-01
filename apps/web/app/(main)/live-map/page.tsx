@@ -1,5 +1,5 @@
-"use client"
-import GoogleMaps from "./components/GoogleMaps"
+'use client';
+import GoogleMaps from './components/GoogleMaps';
 
 export default function LiveMapPage() {
   return (
@@ -11,5 +11,5 @@ export default function LiveMapPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

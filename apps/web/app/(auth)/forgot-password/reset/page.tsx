@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import Link from "next/link"
-import { useForm } from "react-hook-form"
+import Link from 'next/link';
+import { useForm } from 'react-hook-form';
 import {
   Form,
   FormField,
@@ -9,34 +9,34 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import Image from "next/image"
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 type ResetPasswordValues = {
-  password: string
-  confirmPassword: string
-}
+  password: string;
+  confirmPassword: string;
+};
 
 export default function ResetPasswordPage() {
   const form = useForm<ResetPasswordValues>({
     defaultValues: {
-      password: "",
-      confirmPassword: "",
+      password: '',
+      confirmPassword: '',
     },
-  })
+  });
 
   function onSubmit(values: ResetPasswordValues) {
     if (values.password !== values.confirmPassword) {
-      form.setError("confirmPassword", {
-        message: "Passwords do not match",
-      })
-      return
+      form.setError('confirmPassword', {
+        message: 'Passwords do not match',
+      });
+      return;
     }
     // Placeholder: wire to your reset password logic
-    console.log("Reset password", values.password)
-    alert("Password reset successfully")
+    console.log('Reset password', values.password);
+    alert('Password reset successfully');
   }
 
   return (
@@ -48,7 +48,10 @@ export default function ResetPasswordPage() {
         <h1 className="text-xl font-semibold mb-4">Create new password</h1>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col w-full gap-3">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col w-full gap-3"
+          >
             <FormField
               control={form.control}
               name="password"
@@ -56,7 +59,11 @@ export default function ResetPasswordPage() {
                 <FormItem>
                   <FormLabel>New Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="New password" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="New password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -70,7 +77,11 @@ export default function ResetPasswordPage() {
                 <FormItem>
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Confirm password" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="Confirm password"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -90,5 +101,5 @@ export default function ResetPasswordPage() {
         </Form>
       </div>
     </div>
-  )
+  );
 }

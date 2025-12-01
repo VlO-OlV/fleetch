@@ -13072,6 +13072,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prettier@npm:^3.7.3":
+  version: 3.7.3
+  resolution: "prettier@npm:3.7.3"
+  bin:
+    prettier: bin/prettier.cjs
+  checksum: 10c0/ee86bb06121c74dadc54f30b6f99aff6288966d9b842ce501d6991e20d20c6ce2d45028651b3b0955ca6e5fa89c1bee1e72b6f810243a93cef8bc69737972ef7
+  languageName: node
+  linkType: hard
+
 "pretty-format@npm:30.0.5, pretty-format@npm:^30.0.0":
   version: 30.0.5
   resolution: "pretty-format@npm:30.0.5"
@@ -15613,6 +15622,7 @@ __metadata:
     next: "npm:16.0.6"
     next-themes: "npm:^0.4.6"
     postcss: "npm:^8.5.6"
+    prettier: "npm:^3.7.3"
     react: "npm:19.2.0"
     react-day-picker: "npm:^9.11.3"
     react-dom: "npm:19.2.0"

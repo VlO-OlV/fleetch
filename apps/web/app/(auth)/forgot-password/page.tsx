@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import Link from "next/link"
-import { useForm } from "react-hook-form"
+import Link from 'next/link';
+import { useForm } from 'react-hook-form';
 import {
   Form,
   FormField,
@@ -9,26 +9,26 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import Image from "next/image"
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 type ForgotPasswordValues = {
-  email: string
-}
+  email: string;
+};
 
 export default function ForgotPasswordPage() {
   const form = useForm<ForgotPasswordValues>({
     defaultValues: {
-      email: "",
+      email: '',
     },
-  })
+  });
 
   function onSubmit(values: ForgotPasswordValues) {
     // Placeholder: wire to your forgot password logic
-    console.log("Reset password for", values.email)
-    alert("Reset link sent to: " + values.email)
+    console.log('Reset password for', values.email);
+    alert('Reset link sent to: ' + values.email);
   }
 
   return (
@@ -40,7 +40,10 @@ export default function ForgotPasswordPage() {
         <h1 className="text-xl font-semibold mb-4">Reset password</h1>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col w-full gap-3">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col w-full gap-3"
+          >
             <FormField
               control={form.control}
               name="email"
@@ -68,5 +71,5 @@ export default function ForgotPasswordPage() {
         </Form>
       </div>
     </div>
-  )
+  );
 }

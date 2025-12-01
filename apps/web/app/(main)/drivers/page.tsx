@@ -1,28 +1,46 @@
-"use client"
+'use client';
 
-import { useMemo, useState } from "react"
-import Link from "next/link"
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext } from "@/components/ui/pagination"
-import { Button } from "@/components/ui/button"
+import { useMemo, useState } from 'react';
+import Link from 'next/link';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@/components/ui/popover';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+} from '@/components/ui/pagination';
+import { Button } from '@/components/ui/button';
 
-type Driver = { id: string; name: string; vehicle: string }
+type Driver = { id: string; name: string; vehicle: string };
 
 function makeDrivers(count = 27) {
   return Array.from({ length: count }).map((_, i) => ({
     id: String(3000 + i),
     name: `Driver ${i + 1}`,
     vehicle: `Van ${i % 6}`,
-  })) as Driver[]
+  })) as Driver[];
 }
 
 export default function DriversPage() {
-  const data = useMemo(() => makeDrivers(27), [])
-  const [page, setPage] = useState(1)
-  const pageSize = 10
-  const pageCount = Math.ceil(data.length / pageSize)
-  const pageItems = data.slice((page - 1) * pageSize, page * pageSize)
+  const data = useMemo(() => makeDrivers(27), []);
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const pageCount = Math.ceil(data.length / pageSize);
+  const pageItems = data.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div className="w-full bg-zinc-50">
@@ -48,13 +66,26 @@ export default function DriversPage() {
                   <TableCell>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button size="icon" variant="ghost">⋯</Button>
+                        <Button size="icon" variant="ghost">
+                          ⋯
+                        </Button>
                       </PopoverTrigger>
                       <PopoverContent>
                         <div className="flex flex-col gap-2">
-                          <Link href={`/drivers/${d.id}`} className="text-sky-600">View</Link>
-                          <a onClick={() => alert("Edit " + d.id)}>Edit</a>
-                          <a onClick={() => confirm("Delete driver?") && alert("Deleted")}>Delete</a>
+                          <Link
+                            href={`/drivers/${d.id}`}
+                            className="text-sky-600"
+                          >
+                            View
+                          </Link>
+                          <a onClick={() => alert('Edit ' + d.id)}>Edit</a>
+                          <a
+                            onClick={() =>
+                              confirm('Delete driver?') && alert('Deleted')
+                            }
+                          >
+                            Delete
+                          </a>
                         </div>
                       </PopoverContent>
                     </Popover>
@@ -67,20 +98,29 @@ export default function DriversPage() {
           <Pagination className="mt-4">
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious onClick={() => setPage((p) => Math.max(1, p - 1))} />
+                <PaginationPrevious
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                />
               </PaginationItem>
               {Array.from({ length: pageCount }).map((_, i) => (
                 <PaginationItem key={i}>
-                  <PaginationLink isActive={page === i + 1} onClick={() => setPage(i + 1)}>{i + 1}</PaginationLink>
+                  <PaginationLink
+                    isActive={page === i + 1}
+                    onClick={() => setPage(i + 1)}
+                  >
+                    {i + 1}
+                  </PaginationLink>
                 </PaginationItem>
               ))}
               <PaginationItem>
-                <PaginationNext onClick={() => setPage((p) => Math.min(pageCount, p + 1))} />
+                <PaginationNext
+                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
         </div>
       </main>
     </div>
-  )
+  );
 }
