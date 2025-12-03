@@ -3,19 +3,14 @@
 import { FC, useState } from 'react';
 import {
   GoogleMap,
-  LoadScript,
   Marker,
   DirectionsRenderer,
+  LoadScriptNext,
 } from '@react-google-maps/api';
 
-const containerStyle = {
-  width: '100%',
-  height: '500px',
-};
-
 const defaultCenter = {
-  lat: 37.7749,
-  lng: -122.4194,
+  lat: 50.4427,
+  lng: 30.5218,
 };
 
 const GoogleMapComponent: FC = () => {
@@ -85,11 +80,14 @@ const GoogleMapComponent: FC = () => {
   };
 
   return (
-    <LoadScript
+    <LoadScriptNext
       googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
     >
       <GoogleMap
-        mapContainerStyle={containerStyle}
+        mapContainerStyle={{
+          width: '100%',
+          height: '100%',
+        }}
         center={defaultCenter}
         zoom={10}
         onLoad={onLoad}
@@ -103,13 +101,15 @@ const GoogleMapComponent: FC = () => {
         ))}
         {directions && <DirectionsRenderer directions={directions} />}
       </GoogleMap>
+      {/*
       <button onClick={calculateRoute}>Calculate and Render Route</button>
       {distance && (
         <p>
           Total Distance: {distance} (Estimated Duration: {duration})
         </p>
       )}
-    </LoadScript>
+      */}
+    </LoadScriptNext>
   );
 };
 
