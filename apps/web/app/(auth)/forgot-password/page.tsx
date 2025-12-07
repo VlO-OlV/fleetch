@@ -13,22 +13,25 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-
-type ForgotPasswordValues = {
-  email: string;
-};
+import { ForgotPasswordDto, forgotPasswordSchema } from '@/validation/auth';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
+import { Route } from '@/lib/consts';
 
 export default function ForgotPasswordPage() {
-  const form = useForm<ForgotPasswordValues>({
+  const router = useRouter();
+  const { forgotPassword } = useAuth();
+
+  const form = useForm<ForgotPasswordDto>({
+    resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
       email: '',
     },
   });
 
-  function onSubmit(values: ForgotPasswordValues) {
-    // Placeholder: wire to your forgot password logic
-    console.log('Reset password for', values.email);
-    alert('Reset link sent to: ' + values.email);
+  function onSubmit(data: ForgotPasswordDto) {
+    forgotPassword({ ...data });
   }
 
   return (
@@ -63,9 +66,13 @@ export default function ForgotPasswordPage() {
             </Button>
 
             <div className="flex justify-center text-sm mt-3">
-              <Link href="/login" className="text-sky-600">
+              <Button
+                variant={'link'}
+                onClick={() => router.push(Route.LOGIN)}
+                className="text-sky-600 h-4 p-0"
+              >
                 Back to login
-              </Link>
+              </Button>
             </div>
           </form>
         </Form>

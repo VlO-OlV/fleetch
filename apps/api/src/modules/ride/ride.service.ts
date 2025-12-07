@@ -58,7 +58,7 @@ export class RideService {
 
     return {
       data: [...rides],
-      total: totalRides,
+      totalPages: Math.ceil(totalRides / limit),
       page,
       limit,
     };

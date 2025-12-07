@@ -16,6 +16,7 @@ export class DriverService {
       page = 1,
       limit = 10,
       firstName,
+      middleName,
       lastName,
       phoneNumber,
       status,
@@ -24,6 +25,9 @@ export class DriverService {
     const where: Prisma.DriverWhereInput = {};
     if (firstName) {
       where.firstName = { contains: firstName, mode: 'insensitive' };
+    }
+    if (middleName) {
+      where.middleName = { contains: middleName, mode: 'insensitive' };
     }
     if (lastName) {
       where.lastName = { contains: lastName, mode: 'insensitive' };
@@ -44,7 +48,7 @@ export class DriverService {
 
     return {
       data: [...drivers],
-      total: totalDrivers,
+      totalPages: Math.ceil(totalDrivers / limit),
       page,
       limit,
     };

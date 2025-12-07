@@ -9,6 +9,10 @@ export class DriverQueryDto {
 
   @IsOptional()
   @IsString()
+  middleName?: string;
+
+  @IsOptional()
+  @IsString()
   lastName?: string;
 
   @IsOptional()

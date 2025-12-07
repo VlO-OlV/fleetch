@@ -41,126 +41,75 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { DriverEditDialogForm } from './DriverEditDialogForm';
-
-type Driver = {
-  id: string;
-  name: string;
-  phone: string;
-  rideClass: string;
-  status: 'active' | 'inactive' | 'suspended';
-  totalRides: number;
-  carNumber: string;
-  vehicle: string;
-};
-
-function makeDrivers(count = 27) {
-  const classes = ['economy', 'business', 'vip'];
-  const statuses: Driver['status'][] = ['active', 'inactive', 'suspended'];
-  return Array.from({ length: count }).map((_, i) => ({
-    id: String(3000 + i),
-    name: `Driver ${i + 1}`,
-    phone: `+1-555-01${String(i).padStart(2, '0')}`,
-    rideClass: classes[i % classes.length],
-    status: statuses[i % statuses.length],
-    totalRides: 123,
-    carNumber: `CAR-${3000 + i}`,
-    vehicle: `Van ${i % 6}`,
-  })) as Driver[];
-}
+import { DriverResponse } from '@/types/driver';
+import { FilterDto, SortingDto } from '@/types';
+import { useDriver } from '@/hooks/use-driver';
+import { DriverStatusToDetailsMap } from '@/lib/consts';
+import { DriverTableRow } from './components/DriverTableRow';
+import { DriverActionDialog } from './components/DriverActionDialog';
+import { DriverProfileDialog } from './components/DriverProfileDialog';
 
 export default function DriversPage() {
-  const [search, setSearch] = useState('');
-  const [sortKey, setSortKey] = useState<
-    | 'id'
-    | 'name'
-    | 'vehicle'
-    | 'rideClass'
-    | 'status'
-    | 'totalRides'
-    | 'carNumber'
-    | 'phone'
-  >('id');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
-  const [filter, setFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [rideClassFilter, setRideClassFilter] = useState('');
-  const [data] = useState(() => makeDrivers(27));
-  const [page, setPage] = useState(1);
-  const pageSize = 10;
-  const pageCount = Math.ceil(data.length / pageSize);
+  const [search, setSearch] = useState<string>('');
+  const [sort, setSort] = useState<SortingDto<DriverResponse>['sortingParams']>(
+    {},
+  );
+  const [filter, setFilter] = useState<
+    FilterDto<DriverResponse>['filterParams']
+  >({});
+  const [page, setPage] = useState<number>(1);
 
-  // Search, filter, sort
-  const filtered = useMemo(() => {
-    let arr = [...data];
-    if (search)
-      arr = arr.filter(
-        (d) =>
-          d.name.toLowerCase().includes(search.toLowerCase()) ||
-          d.vehicle.toLowerCase().includes(search.toLowerCase()) ||
-          d.phone.toLowerCase().includes(search.toLowerCase()) ||
-          d.rideClass.toLowerCase().includes(search.toLowerCase()),
-      );
-    if (filter) arr = arr.filter((d) => d.vehicle === filter);
-    if (statusFilter) arr = arr.filter((d) => d.status === statusFilter);
-    if (rideClassFilter)
-      arr = arr.filter((d) => d.rideClass === rideClassFilter);
-    arr.sort((a, b) => {
-      const vA = a[sortKey] ?? '';
-      const vB = b[sortKey] ?? '';
-      if (typeof vA === 'number' && typeof vB === 'number') {
-        return sortDir === 'asc' ? vA - vB : vB - vA;
-      }
-      if (vA < vB) return sortDir === 'asc' ? -1 : 1;
-      if (vA > vB) return sortDir === 'asc' ? 1 : -1;
-      return 0;
-    });
-    return arr;
-  }, [data, search, filter, rideClassFilter, statusFilter, sortKey, sortDir]);
+  const { drivers } = useDriver({
+    page,
+    filterParams: { ...filter },
+    sortingParams: { ...sort },
+    search,
+  });
 
-  const pageItems = filtered.slice((page - 1) * pageSize, page * pageSize);
-  // Dialog state
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Driver | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editDriver, setEditDriver] = useState<Driver | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState<DriverResponse | null>(
+    null,
+  );
 
-  function openProfile(d: Driver) {
-    setSelected(d);
-    setOpen(true);
-  }
+  const tableHeader: {
+    key: keyof DriverResponse;
+    label: string;
+  }[] = useMemo(
+    () => [
+      {
+        key: 'firstName',
+        label: 'Name',
+      },
+      {
+        key: 'phoneNumber',
+        label: 'Phone',
+      },
+      {
+        key: 'rideClassId',
+        label: 'Ride Class',
+      },
+      {
+        key: 'status',
+        label: 'Status',
+      },
+      {
+        key: 'totalRides',
+        label: 'Total Rides',
+      },
+      {
+        key: 'carNumber',
+        label: 'Car #',
+      },
+    ],
+    [],
+  );
 
-  function openEditDialog(driver?: Driver) {
-    setEditDriver(driver || null);
-    setEditDialogOpen(true);
-  }
-
-  function handleSaveDriver(values: {
-    name: string;
-    phone?: string | undefined;
-    rideClass?: string | undefined;
-    carNumber?: string | undefined;
-    status?: 'active' | 'inactive' | 'suspended' | undefined;
-  }) {
-    if (editDriver) {
-      // Edit
-      const updated = { ...editDriver, ...values };
-      // update data array
-      // as data is from useState(() => makeDrivers()) we need to replace it by creating a new state if we had setter; currently data is constant so simulate update by alert
-      // In a real app, replace with API call and refresh
-      console.log('Edited driver', updated);
-    } else {
-      console.log('Create driver', values);
-    }
-    setEditDialogOpen(false);
-  }
-
-  function handleDeleteDriver(id: string) {
-    if (!confirm('Delete driver?')) return;
-    // data is read-only in this mock; in a real app call API and refresh state
-    alert('Deleted ' + id);
-    setOpen(false);
-  }
+  const displayedPages = useMemo(() => {
+    if (page === 0) return [1, 2, 3];
+    if (page === drivers?.totalPages) return [page - 2, page - 1, page];
+    return [page - 1, page, page + 1];
+  }, [page, drivers?.totalPages]);
 
   return (
     <div className="w-full">
@@ -175,42 +124,47 @@ export default function DriversPage() {
           />
 
           <Select
-            onValueChange={(v) => setStatusFilter(v)}
-            value={statusFilter}
+            onValueChange={(value) =>
+              setFilter((prev) => ({ ...prev, status: value }))
+            }
+            value={filter?.status}
           >
             <SelectTrigger className="w-40">
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {Array.from(new Set(data.map((d) => d.status))).map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
+                {Object.entries(DriverStatusToDetailsMap).map(
+                  ([status, { label }]) => (
+                    <SelectItem key={status} value={status}>
+                      {label}
+                    </SelectItem>
+                  ),
+                )}
               </SelectGroup>
             </SelectContent>
           </Select>
 
           <Select
-            onValueChange={(v) => setRideClassFilter(v)}
-            value={rideClassFilter}
+            onValueChange={(value) =>
+              setFilter((prev) => ({ ...prev, rideClassId: value }))
+            }
+            value={filter?.rideClassId}
           >
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-40 capitalize">
               <SelectValue placeholder="All classes" />
             </SelectTrigger>
             <SelectContent>
-              <SelectGroup>
-                {Array.from(new Set(data.map((d) => d.rideClass))).map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
+              <SelectGroup>{/* */}</SelectGroup>
             </SelectContent>
           </Select>
 
-          <Button onClick={() => openEditDialog()} className="h-9">
+          <Button
+            onClick={() => {
+              setIsDialogOpen(true);
+            }}
+            className="h-9"
+          >
             Add Driver
           </Button>
         </div>
@@ -218,108 +172,41 @@ export default function DriversPage() {
           <Table>
             <TableHeader>
               <tr>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('id');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  ID
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('name');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Name
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('phone');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Phone
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('rideClass');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Ride Class
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('status');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Status
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('totalRides');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Total Rides
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('carNumber');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Car #
-                </TableHead>
+                {tableHeader.map(({ key, label }, index) => (
+                  <TableHead
+                    key={index}
+                    onClick={() =>
+                      setSort((prev) => ({
+                        ...prev,
+                        [key]: prev?.[key]
+                          ? prev[key] === 'asc'
+                            ? 'desc'
+                            : 'asc'
+                          : 'asc',
+                      }))
+                    }
+                    className="cursor-pointer"
+                  >
+                    {label}
+                  </TableHead>
+                ))}
                 <TableHead>Actions</TableHead>
               </tr>
             </TableHeader>
             <TableBody>
-              {pageItems.map((d) => (
-                <TableRow key={d.id}>
-                  <TableCell>{d.id}</TableCell>
-                  <TableCell>{d.name}</TableCell>
-                  <TableCell>{d.phone}</TableCell>
-                  <TableCell className="capitalize">{d.rideClass}</TableCell>
-                  <TableCell>
-                    <StatusBadge
-                      variant={
-                        d.status === 'active'
-                          ? 'success'
-                          : d.status === 'suspended'
-                            ? 'danger'
-                            : 'warning'
-                      }
-                    >
-                      {d.status}
-                    </StatusBadge>
-                  </TableCell>
-                  <TableCell>{d.totalRides}</TableCell>
-                  <TableCell>{d.carNumber}</TableCell>
-                  <TableCell className="w-[150px]">
-                    <Button size="sm" onClick={() => openProfile(d)}>
-                      Profile
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openEditDialog(d)}
-                      className="ml-2"
-                    >
-                      Edit
-                    </Button>
-                  </TableCell>
-                </TableRow>
+              {drivers?.data.map((driver, index) => (
+                <DriverTableRow
+                  key={index}
+                  driver={driver}
+                  onEdit={() => {
+                    setSelectedDriver(driver);
+                    setIsDialogOpen(true);
+                  }}
+                  onOpenProfile={() => {
+                    setSelectedDriver(driver);
+                    setIsProfileDialogOpen(true);
+                  }}
+                />
               ))}
             </TableBody>
           </Table>
@@ -330,77 +217,36 @@ export default function DriversPage() {
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                 />
               </PaginationItem>
-              {Array.from({ length: pageCount }).map((_, i) => (
-                <PaginationItem key={i}>
+              {displayedPages.map((value) => (
+                <PaginationItem key={value}>
                   <PaginationLink
-                    isActive={page === i + 1}
-                    onClick={() => setPage(i + 1)}
+                    isActive={page === value}
+                    onClick={() => setPage(value)}
                   >
-                    {i + 1}
+                    {value}
                   </PaginationLink>
                 </PaginationItem>
               ))}
               <PaginationItem>
                 <PaginationNext
-                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                  onClick={() =>
+                    setPage((p) => Math.min(drivers?.totalPages || 0, p + 1))
+                  }
                 />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
         </div>
-        {/* Profile dialog */}
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent>
-            <DialogTitle>Driver profile</DialogTitle>
-            {selected ? (
-              <div className="mt-2">
-                <p>
-                  <strong>ID:</strong> {selected.id}
-                </p>
-                <p>
-                  <strong>Name:</strong> {selected.name}
-                </p>
-                <p>
-                  <strong>Phone:</strong> {selected.phone}
-                </p>
-                <p>
-                  <strong>Ride Class:</strong> {selected.rideClass}
-                </p>
-                <p>
-                  <strong>Car #:</strong> {selected.carNumber}
-                </p>
-                <p>
-                  <strong>Total rides:</strong> {selected.totalRides}
-                </p>
-              </div>
-            ) : (
-              <p>No driver selected</p>
-            )}
-            <DialogFooter>
-              <Button
-                variant="destructive"
-                onClick={() => selected && handleDeleteDriver(selected.id)}
-              >
-                Delete
-              </Button>
-              <Button onClick={() => setOpen(false)}>Close</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Edit dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent>
-            <DialogTitle>
-              {editDriver ? 'Edit Driver' : 'Add Driver'}
-            </DialogTitle>
-            <DriverEditDialogForm
-              defaultValues={editDriver || undefined}
-              onSubmit={handleSaveDriver}
-              onCancel={() => setEditDialogOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
+        <DriverProfileDialog
+          isOpen={isProfileDialogOpen}
+          onOpenChange={setIsProfileDialogOpen}
+          driver={selectedDriver}
+        />
+        <DriverActionDialog
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          driver={selectedDriver}
+        />
       </main>
     </div>
   );

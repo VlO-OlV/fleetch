@@ -13,31 +13,27 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-
-type ResetPasswordValues = {
-  password: string;
-  confirmPassword: string;
-};
+import { useRouter } from 'next/navigation';
+import { Route } from '@/lib/consts';
+import { ResetPasswordDto, resetPasswordSchema } from '@/validation/auth';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function ResetPasswordPage() {
-  const form = useForm<ResetPasswordValues>({
+  const router = useRouter();
+  const { resetPassword } = useAuth();
+
+  const form = useForm<ResetPasswordDto>({
+    resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      password: '',
+      newPassword: '',
       confirmPassword: '',
     },
   });
 
-  function onSubmit(values: ResetPasswordValues) {
-    if (values.password !== values.confirmPassword) {
-      form.setError('confirmPassword', {
-        message: 'Passwords do not match',
-      });
-      return;
-    }
-    // Placeholder: wire to your reset password logic
-    console.log('Reset password', values.password);
-    alert('Password reset successfully');
-  }
+  const onSubmit = (data: ResetPasswordDto) => {
+    resetPassword({ ...data });
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 px-4 md:px-8">
@@ -54,7 +50,7 @@ export default function ResetPasswordPage() {
           >
             <FormField
               control={form.control}
-              name="password"
+              name="newPassword"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>New Password</FormLabel>
@@ -93,9 +89,13 @@ export default function ResetPasswordPage() {
             </Button>
 
             <div className="flex justify-center text-sm mt-3">
-              <Link href="/login" className="text-sky-600">
+              <Button
+                variant={'link'}
+                onClick={() => router.push(Route.LOGIN)}
+                className="text-sky-600 h-4 p-0"
+              >
                 Back to login
-              </Link>
+              </Button>
             </div>
           </form>
         </Form>

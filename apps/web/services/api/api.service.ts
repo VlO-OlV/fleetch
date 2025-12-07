@@ -1,4 +1,12 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { ApiEndpoint, StorageKey } from '@/lib/consts';
+import { LoginResponse } from '@/types/auth';
+import { FileMetadataResponse } from '@/types/file';
+import axios, {
+  AxiosError,
+  AxiosRequestConfig,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+} from 'axios';
 import { toast } from 'sonner';
 
 class ApiService {
@@ -12,7 +20,10 @@ class ApiService {
       headers: {
         'Content-Type': 'application/json',
       },
+      withCredentials: true,
     });
+
+    let isRefreshing = false;
 
     this.api.interceptors.request.use(
       (config) => {
@@ -27,29 +38,77 @@ class ApiService {
 
     this.api.interceptors.response.use(
       (response) => response,
-      (error) => {
-        console.log(error);
-        toast.error('Event has been created', {
-          description: 'Sunday, December 03, 2023 at 9:00 AM',
-          action: {
-            label: 'Undo',
-            onClick: () => console.log('Undo'),
-          },
-        });
+      async (error: AxiosError) => {
+        const originalRequest = error.config as InternalAxiosRequestConfig;
+        const errorData = error.response?.data as {
+          message: string;
+          statusCode: number;
+        };
+        if (errorData?.statusCode === 401) {
+          if (isRefreshing) {
+            return Promise.reject(error);
+          }
+          isRefreshing = true;
+          try {
+            const response = await this.post<LoginResponse, void>(
+              ApiEndpoint.REFRESH,
+              undefined,
+            );
+            const token = response.data.accessToken;
+            localStorage.setItem(StorageKey.ACCESS_TOKEN, token);
+            this.api.defaults.headers.common.Authorization = `Bearer ${token}`;
+            isRefreshing = false;
+            return this.api(originalRequest);
+          } catch (refreshError) {
+            if (
+              !('hideToast' in originalRequest) ||
+              !originalRequest.hideToast
+            ) {
+              toast.error('Something went wrong', {
+                description: errorData.message,
+              });
+            }
+            localStorage.removeItem(StorageKey.ACCESS_TOKEN);
+            isRefreshing = false;
+            return Promise.reject(error);
+          }
+        }
+        if (!('hideToast' in originalRequest) || !originalRequest.hideToast) {
+          toast.error('Something went wrong', {
+            description: errorData.message,
+          });
+        }
         return Promise.reject(error);
       },
     );
   }
 
-  public async get<T>(
-    url: string,
-    config: AxiosRequestConfig = {},
-  ): Promise<AxiosResponse<T>> {
-    return this.api.get<T>(url, config);
+  private buildQueryParams(
+    params: Record<string, string | number | boolean | null | undefined>,
+  ): string {
+    return Object.entries(params)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('&');
   }
 
-  public async create<T, D>(
-    url: string,
+  public async get<T>(
+    url: string | ApiEndpoint,
+    config: AxiosRequestConfig & {
+      hideToast?: boolean;
+      queryParams?: Record<
+        string,
+        string | number | boolean | null | undefined
+      >;
+    } = {},
+  ): Promise<AxiosResponse<T>> {
+    const query = config.queryParams
+      ? `?${this.buildQueryParams(config.queryParams)}`
+      : '';
+    return this.api.get<T>(url + query, config);
+  }
+
+  public async post<T, D>(
+    url: string | ApiEndpoint,
     data: D,
     config: AxiosRequestConfig<D> = {},
   ): Promise<AxiosResponse<T>> {
@@ -57,7 +116,7 @@ class ApiService {
   }
 
   public async patch<T, D>(
-    url: string,
+    url: string | ApiEndpoint,
     data: D,
     config: AxiosRequestConfig<D> = {},
   ): Promise<AxiosResponse<T>> {
@@ -65,21 +124,20 @@ class ApiService {
   }
 
   public async delete<T>(
-    url: string,
+    url: string | ApiEndpoint,
     config: AxiosRequestConfig = {},
   ): Promise<AxiosResponse<T>> {
     return this.api.delete<T>(url, config);
   }
 
   public async upload(
-    url: string,
     file: File,
     config: AxiosRequestConfig = {},
-  ): Promise<AxiosResponse> {
+  ): Promise<AxiosResponse<FileMetadataResponse>> {
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.api.post(url, formData, {
+    return this.api.post<FileMetadataResponse>(ApiEndpoint.FILES, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

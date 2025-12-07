@@ -23,6 +23,7 @@ export class CreateDriverDto {
 
   @IsNotEmpty()
   @IsString()
+  @Length(1, 10)
   carNumber: string;
 
   @IsNotEmpty()

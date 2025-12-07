@@ -36,7 +36,7 @@ export function OperatorEditDialogForm({
       name: '',
       phone: '',
       email: '',
-      state: 'active',
+      state: 'pending',
     },
   });
 
@@ -97,9 +97,9 @@ export function OperatorEditDialogForm({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="suspended">Suspended</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="verified">Verified</SelectItem>
+                    <SelectItem value="verified">Verified</SelectItem>
                   </SelectContent>
                 </Select>
               </FormControl>

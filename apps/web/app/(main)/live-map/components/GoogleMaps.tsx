@@ -80,36 +80,37 @@ const GoogleMapComponent: FC = () => {
   };
 
   return (
-    <LoadScriptNext
-      googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
-    >
-      <GoogleMap
-        mapContainerStyle={{
-          width: '100%',
-          height: '100%',
-        }}
-        center={defaultCenter}
-        zoom={10}
-        onLoad={onLoad}
-        onClick={onMapClick}
-        options={{
-          disableDefaultUI: true,
-        }}
+    <>
+      <LoadScriptNext
+        googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
+        language="en-US"
       >
-        {locations.map((loc, index) => (
-          <Marker key={index} position={loc} label={`Pin ${index + 1}`} />
-        ))}
-        {directions && <DirectionsRenderer directions={directions} />}
-      </GoogleMap>
-      {/*
+        <GoogleMap
+          mapContainerStyle={{
+            width: '100%',
+            height: '100%',
+          }}
+          center={defaultCenter}
+          zoom={10}
+          onLoad={onLoad}
+          onClick={onMapClick}
+          options={{
+            disableDefaultUI: true,
+          }}
+        >
+          {locations.map((loc, index) => (
+            <Marker key={index} position={loc} label={`Pin ${index + 1}`} />
+          ))}
+          {directions && <DirectionsRenderer directions={directions} />}
+        </GoogleMap>
+      </LoadScriptNext>
       <button onClick={calculateRoute}>Calculate and Render Route</button>
       {distance && (
         <p>
           Total Distance: {distance} (Estimated Duration: {duration})
         </p>
       )}
-      */}
-    </LoadScriptNext>
+    </>
   );
 };
 

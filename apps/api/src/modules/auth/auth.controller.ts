@@ -13,6 +13,7 @@ import { CookieUtils } from 'src/common/utils/cookie-utils';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
+import { VerifyCodeDto } from './dtos/verify-code.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -89,23 +90,31 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
     @CurrentUser() user: UserPayload,
   ) {
-    const tokens = await this.authService.login(user);
+    if (user.id) {
+      const tokens = await this.authService.login(user);
 
-    CookieUtils.setTokenCookie(
-      res,
-      tokens.refreshToken,
-      this.configService.get<number>('auth.refreshTTL'),
+      CookieUtils.setTokenCookie(
+        res,
+        tokens.refreshToken,
+        this.configService.get<number>('auth.refreshTTL'),
+      );
+    }
+
+    res.redirect(
+      (this.configService.get<string>('frontend') as string) +
+        `?googleAuth=${user.id ? 'success' : 'failed'}`,
     );
-
-    return {
-      accessToken: tokens.accessToken,
-    };
   }
 
   @Throttle({ default: { ttl: 60000, limit: 1 } })
   @Post('/password/forgot')
   public async forgotPassword(@Body() body: ForgotPasswordDto) {
     return this.authService.requestPasswordReset({ ...body });
+  }
+
+  @Post('/password/verify-reset')
+  public async verifyResetPassword(@Body() body: VerifyCodeDto) {
+    return this.authService.verifyResetCode(body);
   }
 
   @UseGuards(JwtGuard)

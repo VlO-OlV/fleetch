@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
@@ -46,11 +42,8 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
 
     const existingUser = await this.userService.findByEmail(email);
 
-    if (!existingUser) {
-      throw new NotFoundException('User with such email not found');
-    }
-
     const user = {
+      id: existingUser?.id || null,
       email: emails?.[0].value,
       firstName: name?.givenName,
       middleName: name?.middleName,

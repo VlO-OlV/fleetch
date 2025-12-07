@@ -1,17 +1,23 @@
-import { IsNotEmpty, IsString, Matches } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class ResetPasswordDto {
   @IsNotEmpty()
   @IsString()
-  @Matches(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-  )
+  @MinLength(8)
+  @MaxLength(20)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])\S+$/)
   newPassword: string;
 
   @IsNotEmpty()
   @IsString()
-  @Matches(
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-  )
+  @MinLength(8)
+  @MaxLength(20)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[\W_])\S+$/)
   confirmPassword: string;
 }

@@ -39,11 +39,11 @@ type Operator = {
   name: string;
   email: string;
   phone?: string;
-  state: 'active' | 'inactive' | 'suspended';
+  state: 'pending' | 'verified' | 'verified';
 };
 
 function makeOperators(count = 35) {
-  const states: Operator['state'][] = ['active', 'inactive', 'suspended'];
+  const states: Operator['state'][] = ['pending', 'verified', 'verified'];
   return Array.from({ length: count }).map((_, i) => ({
     id: String(3000 + i),
     name: `Operator ${i + 1}`,
@@ -217,14 +217,6 @@ export default function OperatorsPage() {
                       className="ml-2"
                     >
                       Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleDeleteOperator(c.id)}
-                      className="ml-2"
-                    >
-                      Delete
                     </Button>
                   </TableCell>
                 </TableRow>

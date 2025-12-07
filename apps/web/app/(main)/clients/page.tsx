@@ -27,6 +27,8 @@ import {
 } from '@/components/ui/pagination';
 import { ClientEditDialogForm } from './ClientEditDialogForm';
 import { Input } from '@/components/ui/input';
+import { format } from 'date-fns';
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 
 type Client = {
   id: string;
@@ -37,6 +39,7 @@ type Client = {
   lastName?: string;
   middleName?: string;
   phone?: string;
+  createdAt: string;
 };
 
 function makeClients(count = 35) {
@@ -44,6 +47,7 @@ function makeClients(count = 35) {
     id: String(2000 + i),
     name: `Client ${i + 1}`,
     email: `client${i + 1}@example.com`,
+    createdAt: new Date().toISOString(),
     firstName: `First${i + 1}`,
     lastName: `Last${i + 1}`,
     middleName: '',
@@ -130,6 +134,7 @@ export default function ClientsPage() {
           totalRides: 35,
           name: `${values.firstName} ${values.lastName}`,
           email: `${values.firstName.toLowerCase()}${values.lastName.toLowerCase()}@example.com`,
+          createdAt: new Date().toISOString(),
           ...values,
         },
         ...prev,
@@ -168,18 +173,14 @@ export default function ClientsPage() {
                     setSortKey('name');
                     setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
                   }}
-                  className="cursor-pointer"
+                  className="flex gap-2 items-center cursor-pointer"
                 >
-                  Name
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('email');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Email
+                  Name{' '}
+                  {sortDir === 'asc' ? (
+                    <ChevronUpIcon size={18} />
+                  ) : (
+                    <ChevronDownIcon size={18} />
+                  )}
                 </TableHead>
                 <TableHead
                   onClick={() => {
@@ -189,6 +190,9 @@ export default function ClientsPage() {
                   className="cursor-pointer"
                 >
                   Phone
+                </TableHead>
+                <TableHead onClick={() => {}} className="cursor-pointer">
+                  Date
                 </TableHead>
                 <TableHead
                   onClick={() => {
@@ -206,8 +210,10 @@ export default function ClientsPage() {
               {items.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell>{c.name}</TableCell>
-                  <TableCell>{c.email}</TableCell>
                   <TableCell>{c.phone || '-'}</TableCell>
+                  <TableCell>
+                    {format(new Date(c.createdAt), 'dd/MM/yyyy')}
+                  </TableCell>
                   <TableCell className="w-[150px]">{c.totalRides}</TableCell>
                   <TableCell className="w-[150px]">
                     <Button size="sm" onClick={() => openProfile(c)}>
@@ -261,9 +267,6 @@ export default function ClientsPage() {
                 </p>
                 <p>
                   <strong>Name:</strong> {selected.name}
-                </p>
-                <p>
-                  <strong>Email:</strong> {selected.email}
                 </p>
                 <p>
                   <strong>First Name:</strong> {selected.firstName}

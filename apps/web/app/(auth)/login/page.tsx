@@ -13,24 +13,26 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-
-type LoginValues = {
-  email: string;
-  password: string;
-};
+import { LoginDto, loginSchema } from '@/validation/auth';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '@/hooks/use-auth';
+import { ApiEndpoint, Route } from '@/lib/consts';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const form = useForm<LoginValues>({
+  const router = useRouter();
+  const { login } = useAuth();
+
+  const form = useForm<LoginDto>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
       password: '',
     },
   });
 
-  function onSubmit(values: LoginValues) {
-    // Placeholder: wire to your auth logic
-    console.log('Sign in', values);
-    alert('Sign in: ' + values.email);
+  function onSubmit(data: LoginDto) {
+    login({ ...data });
   }
 
   return (
@@ -67,7 +69,7 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Password" {...field} />
+                    <Input type="text" placeholder="Password" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -81,7 +83,11 @@ export default function LoginPage() {
               type="button"
               variant="outline"
               className="flex-1"
-              onClick={() => alert('Google sign-in placeholder')}
+              onClick={() =>
+                router.push(
+                  process.env.NEXT_PUBLIC_BACKEND_URL + ApiEndpoint.GOOGLE_AUTH,
+                )
+              }
             >
               <p>Sign in with Google</p>
               <Image
@@ -93,9 +99,14 @@ export default function LoginPage() {
             </Button>
 
             <div className="flex justify-end text-sm mt-2">
-              <Link href="/forgot-password" className="text-sky-600">
+              <Button
+                variant={'link'}
+                type="button"
+                onClick={() => router.push(Route.FORGOT_PASSWORD)}
+                className="text-sky-600 p-0 h-4"
+              >
                 Forgot password?
-              </Link>
+              </Button>
             </div>
           </form>
         </Form>

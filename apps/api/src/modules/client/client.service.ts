@@ -34,7 +34,7 @@ export class ClientService {
 
     return {
       data: [...clients],
-      total: totalClients,
+      totalPages: Math.ceil(totalClients / limit),
       page,
       limit,
     };

@@ -41,21 +41,21 @@ type Order = {
   clientName: string;
   driverName: string;
   operatorName: string;
-  status: 'delivered' | 'in transit' | 'pending' | 'cancelled';
-  paymentType: 'cash' | 'card' | 'online';
+  status: 'Completed' | 'In progress' | 'Pending' | 'Cancelled';
+  paymentType: 'Cash' | 'Card' | 'Crypto';
   totalPrice: number;
-  rideClass: 'economy' | 'business' | 'vip';
+  rideClass: 'Economy' | 'Business' | 'Vip';
 };
 
 function makeOrders(count = 50) {
   const statuses: Order['status'][] = [
-    'delivered',
-    'in transit',
-    'pending',
-    'cancelled',
+    'Completed',
+    'In progress',
+    'Pending',
+    'Cancelled',
   ];
-  const payments: Order['paymentType'][] = ['cash', 'card', 'online'];
-  const classes: Order['rideClass'][] = ['economy', 'business', 'vip'];
+  const payments: Order['paymentType'][] = ['Cash', 'Card', 'Crypto'];
+  const classes: Order['rideClass'][] = ['Economy', 'Business', 'Vip'];
   return Array.from({ length: count }).map((_, i) => ({
     id: String(1000 + i),
     clientName: `Client ${i + 1}`,
@@ -279,9 +279,9 @@ export default function OrdersPage() {
                   <TableCell>
                     <StatusBadge
                       variant={
-                        row.status === 'delivered'
+                        row.status === 'Completed'
                           ? 'success'
-                          : row.status === 'cancelled'
+                          : row.status === 'Cancelled'
                             ? 'danger'
                             : 'info'
                       }
@@ -292,9 +292,9 @@ export default function OrdersPage() {
                   <TableCell>
                     <StatusBadge
                       variant={
-                        row.paymentType === 'cash'
+                        row.paymentType === 'Cash'
                           ? 'neutral'
-                          : row.paymentType === 'card'
+                          : row.paymentType === 'Card'
                             ? 'info'
                             : 'success'
                       }

@@ -1,7 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
-import { PrismaClient, Role, State } from 'generated/prisma';
+import { PrismaClient, State, UserRole } from 'generated/prisma';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
@@ -24,14 +24,15 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
       },
       update: {
         email: adminEmail,
-        password: hashedPassword,
+        role: UserRole.ADMIN,
+        state: State.VERIFIED,
       },
       create: {
         email: adminEmail,
         password: hashedPassword,
         firstName: 'Admin',
         lastName: 'Admin',
-        role: Role.ADMIN,
+        role: UserRole.ADMIN,
         state: State.VERIFIED,
       },
     });
