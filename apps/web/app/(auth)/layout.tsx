@@ -1,3 +1,6 @@
+'use client';
+
+import { LanguageSelect } from '@/components/LanguageSelect';
 import Image from 'next/image';
 
 export default function AuthLayout({
@@ -15,7 +18,12 @@ export default function AuthLayout({
           className="object-cover object-left"
         />
       </div>
-      <div className="w-1/2 min-h-screen flex flex-col">{children}</div>
+      <div className="relative w-1/2 min-h-screen flex flex-col">
+        <div className="absolute top-4 right-4 md:top-8 md:right-8">
+          <LanguageSelect />
+        </div>
+        {children}
+      </div>
     </div>
   );
 }

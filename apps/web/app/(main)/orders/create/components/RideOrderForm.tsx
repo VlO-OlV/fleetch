@@ -44,6 +44,7 @@ import { PaymentTypeToDetailsMap } from '@/lib/consts';
 import { LocationType, PaymentType } from '@/types/ride';
 import { RouteFlagStatus } from '../page';
 import { DriverStatus } from '@/types/driver';
+import { useI18n } from '@/lib/i18n';
 
 interface RideOrderFormProps {
   form: UseFormReturn<CreateRideDto>;
@@ -86,6 +87,7 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
   const { extraOptions } = useExtraOption({});
 
   const { control } = form;
+  const { t } = useI18n();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -127,7 +129,7 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
           control={control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Client</FormLabel>
+              <FormLabel>{t('orders.form.client', 'Client')}</FormLabel>
               <FormControl>
                 <Combobox
                   triggerClassName="w-full"
@@ -143,7 +145,7 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
                         }
                       : undefined
                   }
-                  placeholder="Select client"
+                  placeholder={t('orders.select.client', 'Select client')}
                   data={(clients?.data || []).map((c) => ({
                     value: c.id,
                     label: formatName(c.firstName, c.middleName, c.lastName),
@@ -163,7 +165,7 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
           control={control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Driver</FormLabel>
+              <FormLabel>{t('orders.form.driver', 'Driver')}</FormLabel>
               <FormControl>
                 <Combobox
                   triggerClassName="w-full"
@@ -179,7 +181,7 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
                         }
                       : undefined
                   }
-                  placeholder="Select driver"
+                  placeholder={t('orders.select.driver', 'Select driver')}
                   data={(drivers?.data || []).map((d) => ({
                     value: d.id,
                     label: formatName(d.firstName, d.middleName, d.lastName),
@@ -197,7 +199,7 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
           control={control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Ride Class</FormLabel>
+              <FormLabel>{t('form.rideClass', 'Ride Class')}</FormLabel>
               <FormControl>
                 <RadioGroup value={field.value} onValueChange={field.onChange}>
                   {rideClasses?.data.map((rc) => (
@@ -221,7 +223,9 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
           control={control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Extra Options</FormLabel>
+              <FormLabel>
+                {t('orders.form.extraOptions', 'Extra Options')}
+              </FormLabel>
               <FormControl>
                 <div className="flex flex-wrap gap-4">
                   {extraOptions?.data.map((opt) => (
@@ -255,7 +259,9 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
           control={control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Payment Type</FormLabel>
+              <FormLabel>
+                {t('orders.form.paymentType', 'Payment Type')}
+              </FormLabel>
               <FormControl>
                 <Select
                   {...field}
@@ -264,14 +270,19 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select payment type" />
+                    <SelectValue
+                      placeholder={t(
+                        'orders.select.paymentType',
+                        'Select payment type',
+                      )}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       {Object.entries(PaymentTypeToDetailsMap).map(
                         ([status, { label }]) => (
                           <SelectItem key={status} value={status}>
-                            {label}
+                            {t(label, status)}
                           </SelectItem>
                         ),
                       )}
@@ -285,7 +296,7 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
         />
 
         <div className="space-y-2">
-          <Label>Locations</Label>
+          <Label>{t('orders.locations.title', 'Locations')}</Label>
           {locations?.map((loc, idx) => (
             <FormField
               key={idx}
@@ -296,15 +307,21 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
                   <div className="flex flex-col gap-2 w-full">
                     <FormLabel>
                       {idx === 0
-                        ? 'Start Location'
+                        ? t('orders.locations.start', 'Start Location')
                         : idx === locations.length - 1
-                          ? 'End Location'
-                          : `Intermediate Location ${idx}`}
+                          ? t('orders.locations.end', 'End Location')
+                          : t(
+                              'orders.locations.intermediate',
+                              `Intermediate Location ${idx}`,
+                            )}
                     </FormLabel>
                     <FormControl>
                       <Input
                         {...field}
-                        placeholder="Enter address"
+                        placeholder={t(
+                          'form.addressPlaceholder',
+                          'Enter address',
+                        )}
                         onFocus={() => setIsAddressInputFocused(true)}
                         disabled={
                           idx !== focusedLocation ||
@@ -368,10 +385,15 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
         <Toggle
           variant={'outline'}
           pressed={isScheduled}
-          onPressedChange={(value) => setIsScheduled(value)}
+          onPressedChange={(value) => {
+            setIsScheduled(value);
+            if (!value) form.setValue('scheduledAt', null);
+          }}
           className="w-full"
         >
-          {isScheduled ? 'Scheduled ride' : 'Immediate ride'}
+          {isScheduled
+            ? t('ride.scheduled', 'Scheduled ride')
+            : t('ride.immediate', 'Immediate ride')}
         </Toggle>
         {isScheduled && (
           <FormField
@@ -394,7 +416,7 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
                           >
                             {scheduledAt
                               ? scheduledAt.toLocaleDateString()
-                              : 'Select date'}
+                              : t('ride.selectDate', 'Select date')}
                             <ChevronDownIcon />
                           </Button>
                         </PopoverTrigger>
@@ -404,7 +426,7 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
                         >
                           <Calendar
                             mode="single"
-                            selected={scheduledAt}
+                            selected={scheduledAt || undefined}
                             captionLayout="dropdown"
                             onSelect={(date) => {
                               form.setValue('scheduledAt', date);
@@ -435,11 +457,11 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
         {routeFlagStatus === RouteFlagStatus.DONE && (
           <>
             <div className="flex gap-2">
-              <Label>Route distance:</Label>
+              <Label>{t('ride.routeDistance', 'Route distance:')}</Label>
               <p>{routeDistance}km</p>
             </div>
             <div className="flex gap-2">
-              <Label>Total price:</Label>
+              <Label>{t('ride.totalPrice', 'Total price:')}</Label>
               <p>${form.watch('totalPrice').toFixed(2)}</p>
             </div>
           </>
@@ -447,7 +469,7 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
         {routeFlagStatus === RouteFlagStatus.DONE ? (
           <>
             <Button type="submit" className="w-full">
-              Submit
+              {t('button.submit', 'Submit')}
             </Button>
             <Button
               type="button"
@@ -458,7 +480,7 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
                 form.setValue('totalPrice', 0);
               }}
             >
-              Cancel
+              {t('button.cancel', 'Cancel')}
             </Button>
           </>
         ) : (
@@ -473,7 +495,7 @@ export const RideOrderForm: FC<RideOrderFormProps> = ({
             }}
             disabled={routeFlagStatus === RouteFlagStatus.IN_PROGRESS}
           >
-            Calculate route
+            {t('orders.calculateRoute', 'Calculate route')}
           </Button>
         )}
       </form>

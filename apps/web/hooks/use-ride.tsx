@@ -6,6 +6,9 @@ import { CreateRideDto, UpdateRideDto } from '@/validation/ride';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
+import { useI18n } from '@/lib/i18n';
+import { useUser } from './use-user';
+import { UserRole } from '@/types/user';
 
 export const useRide = ({
   id,
@@ -17,6 +20,7 @@ export const useRide = ({
   filterParams,
 }: FindManyDto<RideResponse> & { id?: string }) => {
   const queryClient = useQueryClient();
+  const { user } = useUser({});
 
   const getGeneralStats = useCallback(async () => {
     const response = await apiService.get<{
@@ -30,6 +34,7 @@ export const useRide = ({
   const { data: generalStats } = useQuery({
     queryKey: [QueryKey.RIDES_STATS, 'general'],
     queryFn: getGeneralStats,
+    enabled: user?.role === UserRole.ADMIN,
   });
 
   const getPaymentTypeStats = useCallback(async () => {
@@ -44,6 +49,7 @@ export const useRide = ({
   const { data: paymentTypeStats } = useQuery({
     queryKey: [QueryKey.RIDES_STATS, 'payment-type'],
     queryFn: getPaymentTypeStats,
+    enabled: user?.role === UserRole.ADMIN,
   });
 
   const getIncomeStats = useCallback(async () => {
@@ -59,6 +65,7 @@ export const useRide = ({
   const { data: incomeStats } = useQuery({
     queryKey: [QueryKey.RIDES_STATS, 'income'],
     queryFn: getIncomeStats,
+    enabled: user?.role === UserRole.ADMIN,
   });
 
   const getRides = useCallback(async () => {
@@ -113,6 +120,8 @@ export const useRide = ({
     return response.data;
   }, []);
 
+  const { t } = useI18n();
+
   const createRideMutation = useMutation({
     mutationKey: [MutationKey.CREATE_RIDE],
     mutationFn: createRide,
@@ -120,7 +129,7 @@ export const useRide = ({
       queryClient.invalidateQueries({
         queryKey: [QueryKey.RIDES],
       });
-      toast.success('Ride created');
+      toast.success(t('toast.ride.created', 'Ride created'));
     },
   });
 
@@ -142,7 +151,7 @@ export const useRide = ({
       queryClient.invalidateQueries({
         queryKey: [QueryKey.RIDES],
       });
-      toast.success('Ride updated');
+      toast.success(t('toast.ride.updated', 'Ride updated'));
     },
   });
 
@@ -163,7 +172,7 @@ export const useRide = ({
       queryClient.invalidateQueries({
         queryKey: [QueryKey.RIDES],
       });
-      toast.success('Ride deleted');
+      toast.success(t('toast.ride.deleted', 'Ride deleted'));
     },
   });
 

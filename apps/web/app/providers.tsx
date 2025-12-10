@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FC, PropsWithChildren, useState } from 'react';
+import { I18nProvider } from '@/lib/i18n';
 
 export const Providers: FC<PropsWithChildren> = ({ children }) => {
   const [queryClient] = useState(
@@ -20,6 +21,8 @@ export const Providers: FC<PropsWithChildren> = ({ children }) => {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <I18nProvider>{children}</I18nProvider>
+    </QueryClientProvider>
   );
 };

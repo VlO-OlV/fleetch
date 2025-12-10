@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useRideClass } from '@/hooks/use-ride-class';
+import { useI18n } from '@/lib/i18n';
 import { CreateRideClassDto, createRideClassSchema } from '@/validation/ride';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useState } from 'react';
@@ -31,6 +32,7 @@ export const RideClassesForm = () => {
     resolver: zodResolver(createRideClassSchema),
     defaultValues: { ...defaultValues },
   });
+  const { t } = useI18n();
 
   const onSubmit = (data: CreateRideClassDto) => {
     if (editingClassId) {
@@ -66,7 +68,9 @@ export const RideClassesForm = () => {
 
   return (
     <section className="w-full rounded-md bg-white p-4 shadow">
-      <h2 className="mb-3 text-lg font-medium">Ride Classes</h2>
+      <h2 className="mb-3 text-lg font-medium">
+        {t('settings.rideClasses.title', 'Ride Classes')}
+      </h2>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -77,9 +81,17 @@ export const RideClassesForm = () => {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Class name</FormLabel>
+                <FormLabel>
+                  {t('settings.rideClasses.className', 'Class name')}
+                </FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Class name" />
+                  <Input
+                    {...field}
+                    placeholder={t(
+                      'settings.rideClasses.classNamePlaceholder',
+                      'Class name',
+                    )}
+                  />
                 </FormControl>
               </FormItem>
             )}
@@ -89,7 +101,12 @@ export const RideClassesForm = () => {
             name="priceCoefficient"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Price coefficient</FormLabel>
+                <FormLabel>
+                  {t(
+                    'settings.rideClasses.priceCoefficient',
+                    'Price coefficient',
+                  )}
+                </FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -97,7 +114,10 @@ export const RideClassesForm = () => {
                     step={0.1}
                     min={1}
                     max={5}
-                    placeholder="Price coefficient"
+                    placeholder={t(
+                      'settings.rideClasses.priceCoefficientPlaceholder',
+                      'Price coefficient',
+                    )}
                     value={field.value}
                     onChange={(e) => {
                       const value = +e.target.value;
@@ -115,7 +135,7 @@ export const RideClassesForm = () => {
             {editingClassId ? (
               <>
                 <Button type="submit" className="flex-1">
-                  Save
+                  {t('button.save', 'Save')}
                 </Button>
                 <Button
                   variant="outline"
@@ -125,12 +145,12 @@ export const RideClassesForm = () => {
                     setEditingClassId(null);
                   }}
                 >
-                  Cancel
+                  {t('button.cancel', 'Cancel')}
                 </Button>
               </>
             ) : (
               <Button type="submit" className="w-full">
-                Add class
+                {t('settings.rideClasses.addClass', 'Add class')}
               </Button>
             )}
           </div>
@@ -146,7 +166,8 @@ export const RideClassesForm = () => {
             <div>
               <div className="font-medium">{rideClass.name}</div>
               <div className="text-sm text-muted-foreground">
-                Coefficient: {rideClass.priceCoefficient}
+                {t('settings.rideClasses.coefficientLabel', 'Coefficient:')}{' '}
+                {rideClass.priceCoefficient}
               </div>
             </div>
             <div className="flex gap-2">

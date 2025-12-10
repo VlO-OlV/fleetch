@@ -10,9 +10,11 @@ import {
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useI18n } from '@/lib/i18n';
 
 export const useAuth = () => {
   const router = useRouter();
+  const { t } = useI18n();
 
   const login = async (data: LoginDto) => {
     const response = await apiService.post<LoginResponse, LoginDto>(
@@ -90,7 +92,9 @@ export const useAuth = () => {
     mutationFn: resetPassword,
     onSuccess: () => {
       localStorage.removeItem(StorageKey.ACCESS_TOKEN);
-      toast.success('Password updated successfully');
+      toast.success(
+        t('toast.passwordUpdated', 'Password updated successfully'),
+      );
       router.push(Route.LOGIN);
     },
   });

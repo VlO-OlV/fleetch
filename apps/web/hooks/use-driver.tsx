@@ -6,6 +6,7 @@ import { CreateDriverDto, UpdateDriverDto } from '@/validation/driver';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
+import { useI18n } from '@/lib/i18n';
 
 export const useDriver = ({
   id,
@@ -70,6 +71,8 @@ export const useDriver = ({
     return response.data;
   }, []);
 
+  const { t } = useI18n();
+
   const createDriverMutation = useMutation({
     mutationKey: [MutationKey.CREATE_DRIVER],
     mutationFn: createDriver,
@@ -77,7 +80,7 @@ export const useDriver = ({
       queryClient.invalidateQueries({
         queryKey: [QueryKey.DRIVERS],
       });
-      toast.success('Driver created');
+      toast.success(t('toast.driver.created', 'Driver created'));
     },
   });
 
@@ -99,7 +102,7 @@ export const useDriver = ({
       queryClient.invalidateQueries({
         queryKey: [QueryKey.DRIVERS],
       });
-      toast.success('Driver updated');
+      toast.success(t('toast.driver.updated', 'Driver updated'));
     },
   });
 
@@ -120,7 +123,7 @@ export const useDriver = ({
       queryClient.invalidateQueries({
         queryKey: [QueryKey.DRIVERS],
       });
-      toast.success('Driver deleted');
+      toast.success(t('toast.driver.deleted', 'Driver deleted'));
     },
   });
 

@@ -3,8 +3,6 @@
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import {
   SidebarProvider,
   Sidebar,
@@ -27,40 +25,62 @@ import {
   ShieldUser,
   UsersIcon,
 } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useAuth } from '@/hooks/use-auth';
 import { Route, UserRoleToLabelMap } from '@/lib/consts';
 import { useUser } from '@/hooks/use-user';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useEffect, useState } from 'react';
-import { UpdateProfileDto, updateProfileSchema } from '@/validation/user';
 import { EditProfileDialog } from './components/EditProfileDialog';
-import { getFileUrl } from '@/lib/utils';
-
-const navItems = [
-  { href: Route.DASHBOARD, label: 'Dashboard', icon: <HomeIcon size={24} /> },
-  { href: Route.LIVE_MAP, label: 'Live map', icon: <MapPinned size={24} /> },
-  { href: Route.CLIENTS, label: 'Clients', icon: <UsersIcon size={24} /> },
-  { href: Route.DRIVERS, label: 'Drivers', icon: <CarTaxiFront size={24} /> },
-  { href: Route.ORDERS, label: 'Orders', icon: <NotebookTabsIcon size={24} /> },
-  { href: Route.OPERATORS, label: 'Operators', icon: <ShieldUser size={24} /> },
-  { href: Route.SETTINGS, label: 'Settings', icon: <SettingsIcon size={24} /> },
-];
+import { formatName, getFileUrl } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n';
+import { LanguageSelect } from '@/components/LanguageSelect';
+import { UserRole } from '@/types/user';
 
 export default function MainLayout({ children }: { children: ReactNode }) {
   const { logout } = useAuth();
   const { user, isLoading } = useUser({});
   const router = useRouter();
+  const { t } = useI18n();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [lang, setLang] = useState('en');
+
+  const navItems = [
+    user?.role === UserRole.ADMIN && {
+      href: Route.DASHBOARD,
+      label: t('menu.dashboard', 'Dashboard'),
+      icon: <HomeIcon size={24} />,
+    },
+    {
+      href: Route.LIVE_MAP,
+      label: t('menu.liveMap', 'Live map'),
+      icon: <MapPinned size={24} />,
+    },
+    {
+      href: Route.CLIENTS,
+      label: t('menu.clients', 'Clients'),
+      icon: <UsersIcon size={24} />,
+    },
+    {
+      href: Route.DRIVERS,
+      label: t('menu.drivers', 'Drivers'),
+      icon: <CarTaxiFront size={24} />,
+    },
+    {
+      href: Route.ORDERS,
+      label: t('menu.orders', 'Orders'),
+      icon: <NotebookTabsIcon size={24} />,
+    },
+    user?.role === UserRole.ADMIN && {
+      href: Route.OPERATORS,
+      label: t('menu.operators', 'Operators'),
+      icon: <ShieldUser size={24} />,
+    },
+    user?.role === UserRole.ADMIN && {
+      href: Route.SETTINGS,
+      label: t('menu.settings', 'Settings'),
+      icon: <SettingsIcon size={24} />,
+    },
+  ].filter((item) => !!item);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -72,6 +92,10 @@ export default function MainLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider>
+      <EditProfileDialog
+        isOpen={isDialogOpen}
+        onOpenChange={(value) => setIsDialogOpen(value)}
+      />
       <div className="flex min-h-screen flex-1 bg-background">
         <Sidebar side="left" variant="sidebar" collapsible="icon">
           <SidebarHeader>
@@ -80,12 +104,13 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                 <SidebarMenuButton
                   asChild
                   className="group-data-[collapsible=icon]:p-0! h-14"
+                  onClick={() => setIsDialogOpen(true)}
                 >
                   <div className="flex items-center gap-3">
                     {user.profileImageId ? (
                       <img
                         src={getFileUrl(user.profileImageId)}
-                        alt="Profile image"
+                        alt={t('profile.imageAlt', 'Profile image')}
                         className="h-10 aspect-square rounded-full object-cover object-center"
                       />
                     ) : (
@@ -96,25 +121,11 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                     <div className="flex items-center flex-1 gap-3">
                       <div className="flex flex-col flex-1">
                         <div className="text-sm font-semibold line-clamp-1 break-all">
-                          {user.firstName + user.firstName}
+                          {formatName(user.firstName, undefined, user.lastName)}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {user?.role ? UserRoleToLabelMap[user?.role] : '-'}
+                          {user?.role ? t(UserRoleToLabelMap[user?.role]) : '-'}
                         </div>
-                      </div>
-                      <div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="ml-2"
-                          onClick={() => setIsDialogOpen(true)}
-                        >
-                          Edit
-                        </Button>
-                        <EditProfileDialog
-                          isOpen={isDialogOpen}
-                          onOpenChange={(value) => setIsDialogOpen(value)}
-                        />
                       </div>
                     </div>
                   </div>
@@ -153,7 +164,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
                     <span>
                       <LogOutIcon size={24} />
                     </span>
-                    <span className="truncate font-medium">Logout</span>
+                    <span className="truncate font-medium">
+                      {t('profile.logout', 'Logout')}
+                    </span>
                   </span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -164,17 +177,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         <SidebarInset>
           <div className="flex items-center justify-between border-b bg-background p-2 ">
             <SidebarTrigger />
-            <Select onValueChange={setLang} value={lang}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="uk">Українська</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+            <LanguageSelect />
           </div>
           <main className="flex flex-1 p-8">{children}</main>
         </SidebarInset>

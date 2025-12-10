@@ -15,9 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`antialiased`}>
+      <body className={`antialiased op`}>
         <Providers>{children}</Providers>
-        <Toaster />
+        <Toaster toastOptions={{ descriptionClassName: '!text-gray-800' }} />
       </body>
     </html>
   );

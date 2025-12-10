@@ -18,10 +18,12 @@ import { Route } from '@/lib/consts';
 import { ResetPasswordDto, resetPasswordSchema } from '@/validation/auth';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/hooks/use-auth';
+import { useI18n } from '@/lib/i18n';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
   const { resetPassword } = useAuth();
+  const { t } = useI18n();
 
   const form = useForm<ResetPasswordDto>({
     resolver: zodResolver(resetPasswordSchema),
@@ -41,7 +43,9 @@ export default function ResetPasswordPage() {
         <div className="flex items-center gap-4 mb-4">
           <Image src="/logo.png" alt="logo" width={120} height={120} />
         </div>
-        <h1 className="text-xl font-semibold mb-4">Create new password</h1>
+        <h1 className="text-xl font-semibold mb-4">
+          {t('auth.reset.title', 'Create new password')}
+        </h1>
 
         <Form {...form}>
           <form
@@ -53,11 +57,16 @@ export default function ResetPasswordPage() {
               name="newPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>New Password</FormLabel>
+                  <FormLabel>
+                    {t('auth.reset.newPassword', 'New Password')}
+                  </FormLabel>
                   <FormControl>
                     <Input
-                      type="password"
-                      placeholder="New password"
+                      type="text"
+                      placeholder={t(
+                        'auth.reset.newPasswordPlaceholder',
+                        'New password',
+                      )}
                       {...field}
                     />
                   </FormControl>
@@ -71,11 +80,16 @@ export default function ResetPasswordPage() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel>
+                    {t('auth.reset.confirmPassword', 'Confirm Password')}
+                  </FormLabel>
                   <FormControl>
                     <Input
-                      type="password"
-                      placeholder="Confirm password"
+                      type="text"
+                      placeholder={t(
+                        'auth.reset.confirmPasswordPlaceholder',
+                        'Confirm password',
+                      )}
                       {...field}
                     />
                   </FormControl>
@@ -85,7 +99,7 @@ export default function ResetPasswordPage() {
             />
 
             <Button type="submit" className="flex-1 mt-2">
-              Reset Password
+              {t('auth.reset.resetButton', 'Reset Password')}
             </Button>
 
             <div className="flex justify-center text-sm mt-3">
@@ -94,7 +108,7 @@ export default function ResetPasswordPage() {
                 onClick={() => router.push(Route.LOGIN)}
                 className="text-sky-600 h-4 p-0"
               >
-                Back to login
+                {t('auth.reset.back', 'Back to login')}
               </Button>
             </div>
           </form>

@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import StatusBadge from '@/app/(main)/components/StatusBadge';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -50,6 +49,9 @@ import { DriverActionDialog } from './components/DriverActionDialog';
 import { DriverProfileDialog } from './components/DriverProfileDialog';
 import { useRideClass } from '@/hooks/use-ride-class';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
+import { useI18n } from '@/lib/i18n';
+import { useUser } from '@/hooks/use-user';
+import { UserRole } from '@/types/user';
 
 export default function DriversPage() {
   const [search, setSearch] = useState<string>('');
@@ -58,6 +60,7 @@ export default function DriversPage() {
     FilterDto<DriverResponse>['filterParams']
   >({});
   const [page, setPage] = useState<number>(1);
+  const { t } = useI18n();
 
   const { drivers } = useDriver({
     page,
@@ -66,6 +69,7 @@ export default function DriversPage() {
     search,
   });
   const { rideClasses } = useRideClass({});
+  const { user } = useUser({});
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
@@ -80,30 +84,30 @@ export default function DriversPage() {
     () => [
       {
         key: 'firstName',
-        label: 'Name',
+        label: t('drivers.table.name', 'Name'),
       },
       {
         key: 'phoneNumber',
-        label: 'Phone',
+        label: t('drivers.table.phone', 'Phone'),
       },
       {
         key: 'rideClassId',
-        label: 'Ride Class',
+        label: t('drivers.table.rideClass', 'Ride Class'),
       },
       {
         key: 'status',
-        label: 'Status',
+        label: t('drivers.table.status', 'Status'),
       },
       {
         key: 'totalRides',
-        label: 'Total Rides',
+        label: t('drivers.table.totalRides', 'Total Rides'),
       },
       {
         key: 'carNumber',
-        label: 'Car #',
+        label: t('drivers.table.carNumber', 'Car #'),
       },
     ],
-    [],
+    [t],
   );
 
   const displayedPages = useMemo(() => {
@@ -120,12 +124,14 @@ export default function DriversPage() {
   return (
     <div className="w-full">
       <main>
-        <h1 className="text-2xl font-semibold mb-4">Drivers</h1>
+        <h1 className="text-2xl font-semibold mb-4">
+          {t('drivers.title', 'Drivers')}
+        </h1>
         <div className="flex gap-2 mb-4 items-center">
           <Input
             value={search}
             onChange={(e) => setSearch((e.target as HTMLInputElement).value)}
-            placeholder="Search"
+            placeholder={t('drivers.search', 'Search')}
             className="w-[300px]"
           />
 
@@ -136,14 +142,16 @@ export default function DriversPage() {
             value={filter?.status}
           >
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="All statuses" />
+              <SelectValue
+                placeholder={t('drivers.allStatuses', 'All statuses')}
+              />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 {Object.entries(DriverStatusToDetailsMap).map(
                   ([status, { label }]) => (
                     <SelectItem key={status} value={status}>
-                      {label}
+                      {t(label, status)}
                     </SelectItem>
                   ),
                 )}
@@ -158,7 +166,9 @@ export default function DriversPage() {
             value={filter?.rideClassId}
           >
             <SelectTrigger className="w-40 capitalize">
-              <SelectValue placeholder="All classes" />
+              <SelectValue
+                placeholder={t('drivers.allClasses', 'All classes')}
+              />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -170,16 +180,17 @@ export default function DriversPage() {
               </SelectGroup>
             </SelectContent>
           </Select>
-
-          <Button
-            onClick={() => {
-              setSelectedDriver(null);
-              setIsDialogOpen(true);
-            }}
-            className="h-9"
-          >
-            Add Driver
-          </Button>
+          {user?.role === UserRole.ADMIN && (
+            <Button
+              onClick={() => {
+                setSelectedDriver(null);
+                setIsDialogOpen(true);
+              }}
+              className="h-9"
+            >
+              {t('drivers.add', 'Add Driver')}
+            </Button>
+          )}
         </div>
         <div className="rounded-md bg-white p-4 shadow">
           <Table>
@@ -214,7 +225,7 @@ export default function DriversPage() {
                     </div>
                   </TableHead>
                 ))}
-                <TableHead>Actions</TableHead>
+                <TableHead>{t('table.actions', 'Actions')}</TableHead>
               </tr>
             </TableHeader>
             <TableBody>
@@ -239,7 +250,9 @@ export default function DriversPage() {
               <PaginationItem>
                 <PaginationPrevious
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                />
+                >
+                  {t('pagination.prev', 'Previous')}
+                </PaginationPrevious>
               </PaginationItem>
               {displayedPages.map((value) => (
                 <PaginationItem key={value}>
@@ -256,19 +269,23 @@ export default function DriversPage() {
                   onClick={() =>
                     setPage((p) => Math.min(drivers?.totalPages || 0, p + 1))
                   }
-                />
+                >
+                  {t('pagination.next', 'Next')}
+                </PaginationNext>
               </PaginationItem>
             </PaginationContent>
           </Pagination>
         </div>
+        {user?.role === UserRole.ADMIN && (
+          <DriverActionDialog
+            isOpen={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            driver={selectedDriver}
+          />
+        )}
         <DriverProfileDialog
           isOpen={isProfileDialogOpen}
           onOpenChange={setIsProfileDialogOpen}
-          driver={selectedDriver}
-        />
-        <DriverActionDialog
-          isOpen={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
           driver={selectedDriver}
         />
       </main>

@@ -11,6 +11,7 @@ import { formatName } from '@/lib/utils';
 import { DriverResponse } from '@/types/driver';
 import { UserResponse } from '@/types/user';
 import { FC } from 'react';
+import { useI18n } from '@/lib/i18n';
 
 interface OperatorProfileDialogProps {
   operator: UserResponse | null;
@@ -24,18 +25,21 @@ export const OperatorProfileDialog: FC<OperatorProfileDialogProps> = ({
   onOpenChange,
 }) => {
   const { deleteOperator } = useUser({ id: operator?.id });
+  const { t } = useI18n();
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogTitle>Operator profile</DialogTitle>
+        <DialogTitle>
+          {t('dialog.operatorProfile', 'Operator profile')}
+        </DialogTitle>
         {operator && (
           <div className="mt-2">
             <p>
-              <strong>ID:</strong> {operator.id}
+              <strong>{t('table.id', 'ID')}:</strong> {operator.id}
             </p>
             <p>
-              <strong>Name:</strong>{' '}
+              <strong>{t('profile.name', 'Name')}:</strong>{' '}
               {formatName(
                 operator.firstName,
                 operator?.middleName,
@@ -43,13 +47,14 @@ export const OperatorProfileDialog: FC<OperatorProfileDialogProps> = ({
               )}
             </p>
             <p>
-              <strong>Email:</strong> {operator.email}
+              <strong>{t('profile.email', 'Email')}:</strong> {operator.email}
             </p>
             <p>
-              <strong>Phone:</strong> {operator.phoneNumber}
+              <strong>{t('profile.phone', 'Phone')}:</strong>{' '}
+              {operator.phoneNumber}
             </p>
             <p>
-              <strong>State:</strong> {operator.state}
+              <strong>{t('profile.state', 'State')}:</strong> {operator.state}
             </p>
           </div>
         )}
@@ -61,9 +66,11 @@ export const OperatorProfileDialog: FC<OperatorProfileDialogProps> = ({
               deleteOperator(operator?.id);
             }}
           >
-            Delete
+            {t('button.delete', 'Delete')}
           </Button>
-          <Button onClick={() => onOpenChange(false)}>Close</Button>
+          <Button onClick={() => onOpenChange(false)}>
+            {t('button.close', 'Close')}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -24,6 +24,7 @@ import { FC, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useDriver } from '@/hooks/use-driver';
 import { useRideClass } from '@/hooks/use-ride-class';
+import { useI18n } from '@/lib/i18n';
 
 interface DriverActionDialogProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ const DriverDialogForm: FC<DriverActionDialogProps> = ({
 }) => {
   const { createDriver, updateDriver } = useDriver({ id: driver?.id });
   const { rideClasses } = useRideClass({});
+  const { t } = useI18n();
 
   const defaultValues: CreateDriverDto = useMemo(
     () => ({
@@ -79,9 +81,12 @@ const DriverDialogForm: FC<DriverActionDialogProps> = ({
             name="firstName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>First name</FormLabel>
+                <FormLabel>{t('form.firstName', 'First name')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="John" {...field} />
+                  <Input
+                    placeholder={t('form.firstNamePlaceholder', 'John')}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -92,9 +97,12 @@ const DriverDialogForm: FC<DriverActionDialogProps> = ({
             name="middleName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Middle name</FormLabel>
+                <FormLabel>{t('form.middleName', 'Middle name')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Johnson" {...field} />
+                  <Input
+                    placeholder={t('form.middleNamePlaceholder', 'Johnson')}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -105,9 +113,12 @@ const DriverDialogForm: FC<DriverActionDialogProps> = ({
             name="lastName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Last name</FormLabel>
+                <FormLabel>{t('form.lastName', 'Last name')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Doe" {...field} />
+                  <Input
+                    placeholder={t('form.lastNamePlaceholder', 'Doe')}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -120,9 +131,12 @@ const DriverDialogForm: FC<DriverActionDialogProps> = ({
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Phone</FormLabel>
+              <FormLabel>{t('form.phoneNumber', 'Phone')}</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Phone number" />
+                <Input
+                  {...field}
+                  placeholder={t('form.phoneNumber', 'Phone number')}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -134,11 +148,13 @@ const DriverDialogForm: FC<DriverActionDialogProps> = ({
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Ride Class</FormLabel>
+              <FormLabel>{t('form.rideClass', 'Ride Class')}</FormLabel>
               <FormControl>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select class" />
+                    <SelectValue
+                      placeholder={t('drivers.allClasses', 'Select class')}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -161,9 +177,12 @@ const DriverDialogForm: FC<DriverActionDialogProps> = ({
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Car Number</FormLabel>
+              <FormLabel>{t('form.carNumber', 'Car Number')}</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Car number" />
+                <Input
+                  {...field}
+                  placeholder={t('form.carNumber', 'Car number')}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -172,9 +191,9 @@ const DriverDialogForm: FC<DriverActionDialogProps> = ({
 
         <div className="flex gap-2 justify-end pt-2">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {t('button.cancel', 'Cancel')}
           </Button>
-          <Button type="submit">Save</Button>
+          <Button type="submit">{t('button.save', 'Save')}</Button>
         </div>
       </form>
     </Form>
@@ -184,10 +203,16 @@ const DriverDialogForm: FC<DriverActionDialogProps> = ({
 export const DriverActionDialog: FC<DriverActionDialogProps> = ({
   ...props
 }) => {
+  const { t } = useI18n();
+
   return (
     <Dialog open={props.isOpen} onOpenChange={props.onOpenChange}>
       <DialogContent>
-        <DialogTitle>{props.driver ? 'Edit Driver' : 'Add Driver'}</DialogTitle>
+        <DialogTitle>
+          {props.driver
+            ? t('dialog.editDriver', 'Edit Driver')
+            : t('dialog.addDriver', 'Add Driver')}
+        </DialogTitle>
         <DriverDialogForm {...props} />
       </DialogContent>
     </Dialog>

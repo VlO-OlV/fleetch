@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Table,
   TableHeader,
@@ -28,15 +28,18 @@ import {
   SelectGroup,
 } from '@/components/ui/select';
 import { FilterDto, SortingDto } from '@/types';
-import { UserResponse } from '@/types/user';
+import { UserResponse, UserRole } from '@/types/user';
 import { useUser } from '@/hooks/use-user';
-import { UserStateToDetailsMap } from '@/lib/consts';
+import { useI18n } from '@/lib/i18n';
+import { Route, UserStateToDetailsMap } from '@/lib/consts';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { OperatorTableRow } from './components/OperatorTableRow';
 import { OperatorProfileDialog } from './components/OperatorProfileDialog';
 import { OpearatorActionDialog } from './components/OperatorActionDialog';
+import { useRouter } from 'next/navigation';
 
 export default function OperatorsPage() {
+  const { t } = useI18n();
   const [search, setSearch] = useState<string>('');
   const [sort, setSort] = useState<SortingDto<UserResponse>>({});
   const [filter, setFilter] = useState<FilterDto<UserResponse>['filterParams']>(
@@ -44,12 +47,13 @@ export default function OperatorsPage() {
   );
   const [page, setPage] = useState<number>(1);
 
-  const { operators } = useUser({
+  const { user, isLoading, operators } = useUser({
     page,
     filterParams: { ...filter },
     ...sort,
     search,
   });
+  const router = useRouter();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
@@ -64,22 +68,22 @@ export default function OperatorsPage() {
     () => [
       {
         key: 'firstName',
-        label: 'Name',
+        label: t('table.name', 'Name'),
       },
       {
         key: 'email',
-        label: 'Email',
+        label: t('table.email', 'Email'),
       },
       {
         key: 'phoneNumber',
-        label: 'Phone',
+        label: t('table.phone', 'Phone'),
       },
       {
         key: 'state',
-        label: 'State',
+        label: t('table.state', 'State'),
       },
     ],
-    [],
+    [t],
   );
 
   const displayedPages = useMemo(() => {
@@ -93,15 +97,25 @@ export default function OperatorsPage() {
     );
   }, [page, operators]);
 
+  useEffect(() => {
+    if (!isLoading && user?.role !== UserRole.ADMIN) {
+      router.push(Route.LIVE_MAP);
+    }
+  }, [user, isLoading]);
+
+  if (!user) return null;
+
   return (
     <div className="w-full">
       <main>
-        <h1 className="text-2xl font-semibold mb-4">Operators</h1>
+        <h1 className="text-2xl font-semibold mb-4">
+          {t('operators.title', 'Operators')}
+        </h1>
         <div className="flex gap-2 mb-4 items-center">
           <Input
             value={search}
             onChange={(e) => setSearch((e.target as HTMLInputElement).value)}
-            placeholder="Search"
+            placeholder={t('placeholder.search', 'Search')}
             className="w-[300px]"
           />
           <Select
@@ -111,14 +125,16 @@ export default function OperatorsPage() {
             value={filter?.state}
           >
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Filter state" />
+              <SelectValue
+                placeholder={t('operators.filterState', 'Filter state')}
+              />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 {Object.entries(UserStateToDetailsMap).map(
                   ([status, { label }]) => (
                     <SelectItem key={status} value={status}>
-                      {label}
+                      {t(label, status)}
                     </SelectItem>
                   ),
                 )}
@@ -132,7 +148,7 @@ export default function OperatorsPage() {
             }}
             className="h-9"
           >
-            Add Operator
+            {t('operators.add', 'Add Operator')}
           </Button>
         </div>
         <div className="rounded-md bg-white p-4 shadow">
@@ -168,7 +184,9 @@ export default function OperatorsPage() {
                     </div>
                   </TableHead>
                 ))}
-                <TableHead className="w-[200px]">Actions</TableHead>
+                <TableHead className="w-[200px]">
+                  {t('table.actions', 'Actions')}
+                </TableHead>
               </tr>
             </TableHeader>
             <TableBody>

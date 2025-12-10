@@ -5,6 +5,7 @@ import { CreateExtraOptionDto, UpdateExtraOptionDto } from '@/validation/ride';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
+import { useI18n } from '@/lib/i18n';
 
 export const useExtraOption = ({ id }: { id?: string }) => {
   const queryClient = useQueryClient();
@@ -29,6 +30,8 @@ export const useExtraOption = ({ id }: { id?: string }) => {
     return response.data;
   }, []);
 
+  const { t } = useI18n();
+
   const createExtraOptionMutation = useMutation({
     mutationKey: [MutationKey.CREATE_EXTRA_OPTION],
     mutationFn: createExtraOption,
@@ -36,7 +39,7 @@ export const useExtraOption = ({ id }: { id?: string }) => {
       queryClient.invalidateQueries({
         queryKey: [QueryKey.EXTRA_OPTIONS],
       });
-      toast.success('Extra option created');
+      toast.success(t('toast.extraOption.created', 'Extra option created'));
     },
   });
 
@@ -58,7 +61,7 @@ export const useExtraOption = ({ id }: { id?: string }) => {
       queryClient.invalidateQueries({
         queryKey: [QueryKey.EXTRA_OPTIONS],
       });
-      toast.success('Extra option updated');
+      toast.success(t('toast.extraOption.updated', 'Extra option updated'));
     },
   });
 
@@ -79,7 +82,7 @@ export const useExtraOption = ({ id }: { id?: string }) => {
       queryClient.invalidateQueries({
         queryKey: [QueryKey.EXTRA_OPTIONS],
       });
-      toast.success('Extra option deleted');
+      toast.success(t('toast.extraOption.deleted', 'Extra option deleted'));
     },
   });
 

@@ -5,6 +5,7 @@ import { CreateRideClassDto, UpdateRideClassDto } from '@/validation/ride';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
+import { useI18n } from '@/lib/i18n';
 
 export const useRideClass = ({ id }: { id?: string }) => {
   const queryClient = useQueryClient();
@@ -29,6 +30,8 @@ export const useRideClass = ({ id }: { id?: string }) => {
     return response.data;
   }, []);
 
+  const { t } = useI18n();
+
   const createRideClassMutation = useMutation({
     mutationKey: [MutationKey.CREATE_RIDE_CLASS],
     mutationFn: createRideClass,
@@ -36,7 +39,7 @@ export const useRideClass = ({ id }: { id?: string }) => {
       queryClient.invalidateQueries({
         queryKey: [QueryKey.RIDE_CLASSES],
       });
-      toast.success('Ride class created');
+      toast.success(t('toast.rideClass.created', 'Ride class created'));
     },
   });
 
@@ -58,7 +61,7 @@ export const useRideClass = ({ id }: { id?: string }) => {
       queryClient.invalidateQueries({
         queryKey: [QueryKey.RIDE_CLASSES],
       });
-      toast.success('Ride class updated');
+      toast.success(t('toast.rideClass.updated', 'Ride class updated'));
     },
   });
 
@@ -79,7 +82,7 @@ export const useRideClass = ({ id }: { id?: string }) => {
       queryClient.invalidateQueries({
         queryKey: [QueryKey.RIDE_CLASSES],
       });
-      toast.success('Ride class deleted');
+      toast.success(t('toast.rideClass.deleted', 'Ride class deleted'));
     },
   });
 

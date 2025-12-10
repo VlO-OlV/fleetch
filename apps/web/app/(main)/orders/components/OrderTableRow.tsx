@@ -7,6 +7,7 @@ import { RideResponse } from '@/types/ride';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { FC } from 'react';
+import { useI18n } from '@/lib/i18n';
 
 interface OrderTableRowProps {
   ride: RideResponse;
@@ -14,6 +15,7 @@ interface OrderTableRowProps {
 
 export const OrderTableRow: FC<OrderTableRowProps> = ({ ride }) => {
   const router = useRouter();
+  const { t } = useI18n();
 
   const { client, operator, driver, rideClass } = ride;
 
@@ -38,13 +40,35 @@ export const OrderTableRow: FC<OrderTableRowProps> = ({ ride }) => {
             )
           : '-'}
       </TableCell>
-      <TableCell>{RideStatusToDetailsMap[ride.status].label}</TableCell>
-      <TableCell>{PaymentTypeToDetailsMap[ride.paymentType].label}</TableCell>
+      <TableCell>
+        <span
+          className={`flex items-center justify-self-start px-2 py-0.5 rounded-full text-sm font-medium border`}
+          style={{
+            color: RideStatusToDetailsMap[ride.status].color,
+            borderColor: RideStatusToDetailsMap[ride.status].color,
+            backgroundColor: RideStatusToDetailsMap[ride.status].bgColor,
+          }}
+        >
+          {t(RideStatusToDetailsMap[ride.status].label, ride.status)}
+        </span>
+      </TableCell>
+      <TableCell>
+        <span
+          className={`flex items-center justify-self-start px-2 py-0.5 rounded-full text-sm font-medium border`}
+          style={{
+            color: PaymentTypeToDetailsMap[ride.paymentType].color,
+            borderColor: PaymentTypeToDetailsMap[ride.paymentType].color,
+            backgroundColor: PaymentTypeToDetailsMap[ride.paymentType].bgColor,
+          }}
+        >
+          {t(PaymentTypeToDetailsMap[ride.paymentType].label, ride.paymentType)}
+        </span>
+      </TableCell>
       <TableCell>${ride.totalPrice.toFixed(2)}</TableCell>
       <TableCell className="capitalize">{rideClass.name}</TableCell>
       <TableCell className="w-[150px]">
         <Button size="sm" onClick={() => router.push(`/orders/${ride.id}`)}>
-          Profile
+          {t('button.profile', 'Profile')}
         </Button>
         <Button
           size="sm"
@@ -52,7 +76,7 @@ export const OrderTableRow: FC<OrderTableRowProps> = ({ ride }) => {
           onClick={() => router.push(`/orders/${ride.id}/edit`)}
           className="ml-2"
         >
-          Edit
+          {t('button.edit', 'Edit')}
         </Button>
       </TableCell>
     </TableRow>

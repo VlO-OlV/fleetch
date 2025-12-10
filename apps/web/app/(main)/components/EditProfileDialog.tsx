@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useUser } from '@/hooks/use-user';
+import { useI18n } from '@/lib/i18n';
 import { ApiEndpoint, FileType } from '@/lib/consts';
 import { getFileUrl } from '@/lib/utils';
 import apiService from '@/services/api/api.service';
@@ -36,6 +37,7 @@ export const EditProfileDialog: FC<EditProfileDialogProps> = ({
   onOpenChange,
 }) => {
   const { user, updateMe } = useUser({});
+  const { t } = useI18n();
 
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
@@ -84,7 +86,7 @@ export const EditProfileDialog: FC<EditProfileDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton>
         <DialogHeader>
-          <DialogTitle>Edit profile</DialogTitle>
+          <DialogTitle>{t('profile.edit.title', 'Edit profile')}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <div className="w-full flex justify-center">
@@ -118,7 +120,7 @@ export const EditProfileDialog: FC<EditProfileDialogProps> = ({
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First name</FormLabel>
+                    <FormLabel>{t('form.firstName', 'First name')}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -130,7 +132,7 @@ export const EditProfileDialog: FC<EditProfileDialogProps> = ({
                 name="middleName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Middle name</FormLabel>
+                    <FormLabel>{t('form.middleName', 'Middle name')}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -142,7 +144,7 @@ export const EditProfileDialog: FC<EditProfileDialogProps> = ({
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last name</FormLabel>
+                    <FormLabel>{t('form.lastName', 'Last name')}</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -156,7 +158,7 @@ export const EditProfileDialog: FC<EditProfileDialogProps> = ({
               name="phoneNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>{t('form.phone', 'Phone')}</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -169,7 +171,9 @@ export const EditProfileDialog: FC<EditProfileDialogProps> = ({
               name="profileImage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Profile picture</FormLabel>
+                  <FormLabel>
+                    {t('form.profilePicture', 'Profile picture')}
+                  </FormLabel>
                   <FormControl>
                     <FileInput
                       fileType={FileType.IMAGE}
@@ -187,10 +191,10 @@ export const EditProfileDialog: FC<EditProfileDialogProps> = ({
             <DialogFooter>
               <DialogClose asChild>
                 <Button variant="outline" type="button">
-                  Cancel
+                  {t('action.cancel', 'Cancel')}
                 </Button>
               </DialogClose>
-              <Button type="submit">Save</Button>
+              <Button type="submit">{t('action.save', 'Save')}</Button>
             </DialogFooter>
           </form>
         </Form>

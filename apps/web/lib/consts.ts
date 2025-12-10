@@ -78,8 +78,8 @@ export enum QueryKey {
 }
 
 export const UserRoleToLabelMap: Record<UserRole, string> = {
-  [UserRole.ADMIN]: 'Admin',
-  [UserRole.OPERATOR]: 'Operator',
+  [UserRole.ADMIN]: 'userRole.admin',
+  [UserRole.OPERATOR]: 'userRole.operator',
 };
 
 export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -93,17 +93,17 @@ export const DriverStatusToDetailsMap: Record<
   { label: string; color: string; bgColor: string }
 > = {
   [DriverStatus.ACTIVE]: {
-    label: 'Active',
+    label: 'driverStatus.active',
     color: '#00a63e',
     bgColor: '#dcfce7',
   },
   [DriverStatus.INACTIVE]: {
-    label: 'Inactive',
+    label: 'driverStatus.inactive',
     color: '#4a5565',
     bgColor: '#f3f4f6',
   },
   [DriverStatus.IN_RIDE]: {
-    label: 'In Ride',
+    label: 'driverStatus.inRide',
     color: '#155dfc',
     bgColor: '#dbeafe',
   },
@@ -114,12 +114,12 @@ export const UserStateToDetailsMap: Record<
   { label: string; color: string; bgColor: string }
 > = {
   [UserState.PENDING]: {
-    label: 'Pending',
+    label: 'userState.pending',
     color: '#d97706',
     bgColor: '#ffedd5',
   },
   [UserState.VERIFIED]: {
-    label: 'Verified',
+    label: 'userState.verified',
     color: '#16a34a',
     bgColor: '#dcfce7',
   },
@@ -130,32 +130,32 @@ export const RideStatusToDetailsMap: Record<
   { label: string; color: string; bgColor: string }
 > = {
   [RideStatus.PENDING]: {
-    label: 'Pending',
+    label: 'rideStatus.pending',
     color: '#d97706',
     bgColor: '#ffedd5',
   },
   [RideStatus.IN_PROGRESS]: {
-    label: 'In Progress',
+    label: 'rideStatus.inProgress',
     color: '#155dfc',
     bgColor: '#dbeafe',
   },
   [RideStatus.COMPLETED]: {
-    label: 'Completed',
+    label: 'rideStatus.completed',
     color: '#16a34a',
     bgColor: '#dcfce7',
   },
   [RideStatus.UPCOMING]: {
-    label: 'Upcoming',
+    label: 'rideStatus.upcoming',
     color: '#0ea5e9',
     bgColor: '#d0f0fd',
   },
   [RideStatus.CANCELLED]: {
-    label: 'Cancelled',
+    label: 'rideStatus.cancelled',
     color: '#dc2626',
     bgColor: '#fee2e2',
   },
   [RideStatus.CANCELLED_BY_DRIVER]: {
-    label: 'Cancelled by Driver',
+    label: 'rideStatus.cancelledByDriver',
     color: '#dc2626',
     bgColor: '#fee2e2',
   },
@@ -166,24 +166,24 @@ export const PaymentTypeToDetailsMap: Record<
   { label: string; color: string; bgColor: string }
 > = {
   [PaymentType.CASH]: {
-    label: 'Cash',
+    label: 'paymentType.cash',
     color: '#4b5563',
     bgColor: '#f3f4f6',
   },
   [PaymentType.CARD]: {
-    label: 'Card',
+    label: 'paymentType.card',
     color: '#0ea5e9',
     bgColor: '#d0f0fd',
   },
   [PaymentType.CRYPTO]: {
-    label: 'Crypto',
+    label: 'paymentType.crypto',
     color: '#a855f7',
     bgColor: '#f3e8ff',
   },
 };
 
 export const LocationTypeToLabelMap: Record<LocationType, string> = {
-  [LocationType.START]: 'Start',
-  [LocationType.INTERMEDIATE]: 'Intermediate',
-  [LocationType.END]: 'End',
+  [LocationType.START]: 'locationType.start',
+  [LocationType.INTERMEDIATE]: 'locationType.intermediate',
+  [LocationType.END]: 'locationType.end',
 };

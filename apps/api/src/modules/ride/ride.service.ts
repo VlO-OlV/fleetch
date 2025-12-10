@@ -237,6 +237,11 @@ export class RideService {
         },
         {
           ...data,
+          status: data.driverId
+            ? data.scheduledAt
+              ? RideStatus.UPCOMING
+              : RideStatus.IN_PROGRESS
+            : RideStatus.PENDING,
           ...(locations
             ? {
                 locations: {

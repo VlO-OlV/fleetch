@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useExtraOption } from '@/hooks/use-extra-option';
+import { useI18n } from '@/lib/i18n';
 import {
   CreateExtraOptionDto,
   createExtraOptionSchema,
@@ -37,6 +38,7 @@ export const ExtraOptionsForm = () => {
     resolver: zodResolver(createExtraOptionSchema),
     defaultValues: { ...defaultValues },
   });
+  const { t } = useI18n();
 
   const onSubmit = (data: CreateExtraOptionDto) => {
     if (editingExtraId) {
@@ -69,7 +71,9 @@ export const ExtraOptionsForm = () => {
 
   return (
     <section className="w-full rounded-md bg-white p-4 shadow">
-      <h2 className="mb-3 text-lg font-medium">Ride Extra Options</h2>
+      <h2 className="mb-3 text-lg font-medium">
+        {t('settings.extraOptions.title', 'Ride Extra Options')}
+      </h2>
 
       <Form {...form}>
         <form
@@ -81,9 +85,15 @@ export const ExtraOptionsForm = () => {
             name="name"
             render={({ field }) => (
               <FormItem className="flex-1">
-                <FormLabel>Name</FormLabel>
+                <FormLabel>{t('settings.extraOptions.name', 'Name')}</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Extra option name" />
+                  <Input
+                    {...field}
+                    placeholder={t(
+                      'settings.extraOptions.placeholder',
+                      'Extra option name',
+                    )}
+                  />
                 </FormControl>
               </FormItem>
             )}
@@ -91,7 +101,7 @@ export const ExtraOptionsForm = () => {
           {editingExtraId ? (
             <>
               <Button type="submit" className="h-9">
-                Save
+                {t('button.save', 'Save')}
               </Button>
               <Button
                 variant="outline"
@@ -101,12 +111,12 @@ export const ExtraOptionsForm = () => {
                   setEditingExtraId(null);
                 }}
               >
-                Cancel
+                {t('button.cancel', 'Cancel')}
               </Button>
             </>
           ) : (
             <Button type="submit" className="h-9">
-              Add
+              {t('button.add', 'Add')}
             </Button>
           )}
         </form>
@@ -125,7 +135,7 @@ export const ExtraOptionsForm = () => {
                 size="sm"
                 onClick={() => startEditExtra(option.id)}
               >
-                Edit
+                {t('button.edit', 'Edit')}
               </Button>
               <Button
                 variant="outline"
@@ -133,7 +143,7 @@ export const ExtraOptionsForm = () => {
                 className="text-red-600 border-red-600"
                 onClick={() => deleteExtraOption(option.id)}
               >
-                Delete
+                {t('button.delete', 'Delete')}
               </Button>
             </div>
           </li>

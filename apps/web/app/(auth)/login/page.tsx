@@ -18,10 +18,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/hooks/use-auth';
 import { ApiEndpoint, Route } from '@/lib/consts';
 import { useRouter } from 'next/navigation';
+import { useI18n } from '@/lib/i18n';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const { t } = useI18n();
 
   const form = useForm<LoginDto>({
     resolver: zodResolver(loginSchema),
@@ -41,7 +43,9 @@ export default function LoginPage() {
         <div className="flex items-center gap-4 mb-4">
           <Image src="/logo.png" alt="logo" width={120} height={120} />
         </div>
-        <h1 className="text-xl font-semibold mb-4">Login</h1>
+        <h1 className="text-xl font-semibold mb-4">
+          {t('auth.login.title', 'Login')}
+        </h1>
 
         <Form {...form}>
           <form
@@ -53,9 +57,9 @@ export default function LoginPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t('login.email', 'Email')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Email" {...field} />
+                    <Input placeholder={t('login.email', 'Email')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -67,16 +71,20 @@ export default function LoginPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t('login.password', 'Password')}</FormLabel>
                   <FormControl>
-                    <Input type="text" placeholder="Password" {...field} />
+                    <Input
+                      type="text"
+                      placeholder={t('login.password', 'Password')}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <Button type="submit" className="flex-1">
-              Sign in
+              {t('auth.login.signIn', 'Sign in')}
             </Button>
 
             <Button
@@ -89,7 +97,7 @@ export default function LoginPage() {
                 )
               }
             >
-              <p>Sign in with Google</p>
+              <p>{t('auth.login.signInWithGoogle', 'Sign in with Google')}</p>
               <Image
                 src="/google-logo.png"
                 alt="google-logo"
@@ -105,7 +113,7 @@ export default function LoginPage() {
                 onClick={() => router.push(Route.FORGOT_PASSWORD)}
                 className="text-sky-600 p-0 h-4"
               >
-                Forgot password?
+                {t('auth.login.forgot', 'Forgot password?')}
               </Button>
             </div>
           </form>

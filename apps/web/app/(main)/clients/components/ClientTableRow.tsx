@@ -4,6 +4,7 @@ import { formatName } from '@/lib/utils';
 import { ClientResponse } from '@/types/client';
 import { format } from 'date-fns';
 import { FC } from 'react';
+import { useI18n } from '@/lib/i18n';
 
 interface ClientTableRowProps {
   client: ClientResponse;
@@ -16,6 +17,8 @@ export const ClientTableRow: FC<ClientTableRowProps> = ({
   onOpenProfile,
   onEdit,
 }) => {
+  const { t } = useI18n();
+
   return (
     <TableRow key={client.id}>
       <TableCell>
@@ -26,7 +29,7 @@ export const ClientTableRow: FC<ClientTableRowProps> = ({
       <TableCell className="w-[150px]">{client.totalRides}</TableCell>
       <TableCell className="w-[150px]">
         <Button size="sm" onClick={() => onOpenProfile(client)}>
-          Profile
+          {t('button.profile', 'Profile')}
         </Button>
         <Button
           size="sm"
@@ -34,7 +37,7 @@ export const ClientTableRow: FC<ClientTableRowProps> = ({
           onClick={() => onEdit(client)}
           className="ml-2"
         >
-          Edit
+          {t('button.edit', 'Edit')}
         </Button>
       </TableCell>
     </TableRow>

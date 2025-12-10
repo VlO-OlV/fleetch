@@ -12,6 +12,7 @@ import { ClientResponse } from '@/types/client';
 import { DriverResponse } from '@/types/driver';
 import { format } from 'date-fns';
 import { FC } from 'react';
+import { useI18n } from '@/lib/i18n';
 
 interface ClientProfileDialogProps {
   client: ClientResponse | null;
@@ -25,28 +26,31 @@ export const ClientProfileDialog: FC<ClientProfileDialogProps> = ({
   onOpenChange,
 }) => {
   const { deleteClient } = useClient({ id: isOpen ? client?.id : undefined });
+  const { t } = useI18n();
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
-        <DialogTitle>Client profile</DialogTitle>
+        <DialogTitle>{t('dialog.clientProfile', 'Client profile')}</DialogTitle>
         {client && (
           <div className="mt-2">
             <p>
-              <strong>ID:</strong> {client.id}
+              <strong>{t('table.id', 'ID')}:</strong> {client.id}
             </p>
             <p>
-              <strong>Name:</strong>{' '}
+              <strong>{t('profile.name', 'Name')}:</strong>{' '}
               {formatName(client.firstName, client.middleName, client.lastName)}
             </p>
             <p>
-              <strong>Phone number:</strong> {client.phoneNumber}
+              <strong>{t('profile.phone', 'Phone number')}:</strong>{' '}
+              {client.phoneNumber}
             </p>
             <p>
-              <strong>Total rides:</strong> {client.totalRides || 0}
+              <strong>{t('profile.totalRides', 'Total rides')}:</strong>{' '}
+              {client.totalRides || 0}
             </p>
             <p>
-              <strong>Date of join:</strong>{' '}
+              <strong>{t('profile.dateOfJoin', 'Date of join')}:</strong>{' '}
               {format(new Date(client.createdAt), 'dd/MM/yyyy')}
             </p>
           </div>
@@ -59,9 +63,11 @@ export const ClientProfileDialog: FC<ClientProfileDialogProps> = ({
               deleteClient(client?.id);
             }}
           >
-            Delete
+            {t('button.delete', 'Delete')}
           </Button>
-          <Button onClick={() => onOpenChange(false)}>Close</Button>
+          <Button onClick={() => onOpenChange(false)}>
+            {t('button.close', 'Close')}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

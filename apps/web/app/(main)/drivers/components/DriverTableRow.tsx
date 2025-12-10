@@ -5,6 +5,9 @@ import { DriverStatusToDetailsMap } from '@/lib/consts';
 import { formatName } from '@/lib/utils';
 import { DriverResponse } from '@/types/driver';
 import { FC, useMemo } from 'react';
+import { useI18n } from '@/lib/i18n';
+import { useUser } from '@/hooks/use-user';
+import { UserRole } from '@/types/user';
 
 interface DriverTableRowProps {
   driver: DriverResponse;
@@ -17,6 +20,8 @@ export const DriverTableRow: FC<DriverTableRowProps> = ({
   onOpenProfile,
   onEdit,
 }) => {
+  const { t } = useI18n();
+  const { user } = useUser({});
   const driverStatusDetails = useMemo(
     () => DriverStatusToDetailsMap[driver.status],
     [driver.status],
@@ -31,25 +36,32 @@ export const DriverTableRow: FC<DriverTableRowProps> = ({
       <TableCell className="capitalize">{driver.rideClass.name}</TableCell>
       <TableCell>
         <span
-          className={`flex items-center px-2 py-0.5 rounded-full text-sm font-medium bg-[${driverStatusDetails.bgColor}] color-[${driverStatusDetails.color}] border-[${driverStatusDetails.color}]`}
+          className={`flex items-center justify-self-start px-2 py-0.5 rounded-full text-sm font-medium border`}
+          style={{
+            color: driverStatusDetails.color,
+            borderColor: driverStatusDetails.color,
+            backgroundColor: driverStatusDetails.bgColor,
+          }}
         >
-          {driverStatusDetails.label}
+          {t(driverStatusDetails.label, driver.status)}
         </span>
       </TableCell>
       <TableCell>{driver.totalRides}</TableCell>
       <TableCell>{driver.carNumber}</TableCell>
       <TableCell className="w-[150px]">
         <Button size="sm" onClick={() => onOpenProfile(driver)}>
-          Profile
+          {t('button.profile', 'Profile')}
         </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => onEdit(driver)}
-          className="ml-2"
-        >
-          Edit
-        </Button>
+        {user?.role === UserRole.ADMIN && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onEdit(driver)}
+            className="ml-2"
+          >
+            {t('button.edit', 'Edit')}
+          </Button>
+        )}
       </TableCell>
     </TableRow>
   );

@@ -6,6 +6,7 @@ import { CreateClientDto, UpdateClientDto } from '@/validation/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
+import { useI18n } from '@/lib/i18n';
 
 export const useClient = ({
   id,
@@ -70,6 +71,8 @@ export const useClient = ({
     return response.data;
   }, []);
 
+  const { t } = useI18n();
+
   const createClientMutation = useMutation({
     mutationKey: [MutationKey.CREATE_CLIENT],
     mutationFn: createClient,
@@ -77,7 +80,7 @@ export const useClient = ({
       queryClient.invalidateQueries({
         queryKey: [QueryKey.CLIENTS],
       });
-      toast.success('Client created');
+      toast.success(t('toast.client.created', 'Client created'));
     },
   });
 
@@ -99,7 +102,7 @@ export const useClient = ({
       queryClient.invalidateQueries({
         queryKey: [QueryKey.CLIENTS],
       });
-      toast.success('Client updated');
+      toast.success(t('toast.client.updated', 'Client updated'));
     },
   });
 
@@ -120,7 +123,7 @@ export const useClient = ({
       queryClient.invalidateQueries({
         queryKey: [QueryKey.CLIENTS],
       });
-      toast.success('Client deleted');
+      toast.success(t('toast.client.deleted', 'Client deleted'));
     },
   });
 

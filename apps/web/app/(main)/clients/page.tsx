@@ -34,6 +34,7 @@ import { useClient } from '@/hooks/use-client';
 import { ClientTableRow } from './components/ClientTableRow';
 import { ClientProfileDialog } from './components/ClientProfileDialog';
 import { ClientActionDialog } from './components/ClientActionDialog';
+import { useI18n } from '@/lib/i18n';
 
 export default function ClientsPage() {
   const [search, setSearch] = useState<string>('');
@@ -56,6 +57,8 @@ export default function ClientsPage() {
     null,
   );
 
+  const { t } = useI18n();
+
   const tableHeader: {
     key: keyof ClientResponse;
     label: string;
@@ -63,22 +66,22 @@ export default function ClientsPage() {
     () => [
       {
         key: 'firstName',
-        label: 'Name',
+        label: t('clients.table.name', 'Name'),
       },
       {
         key: 'phoneNumber',
-        label: 'Phone',
+        label: t('clients.table.phone', 'Phone'),
       },
       {
         key: 'createdAt',
-        label: 'Date',
+        label: t('clients.table.date', 'Date'),
       },
       {
         key: 'totalRides',
-        label: 'Total Rides',
+        label: t('clients.table.totalRides', 'Total Rides'),
       },
     ],
-    [],
+    [t],
   );
 
   const displayedPages = useMemo(() => {
@@ -95,12 +98,14 @@ export default function ClientsPage() {
   return (
     <div className="w-full">
       <main>
-        <h1 className="text-2xl font-semibold mb-4">Clients</h1>
+        <h1 className="text-2xl font-semibold mb-4">
+          {t('clients.title', 'Clients')}
+        </h1>
         <div className="flex gap-2 mb-4">
           <Input
             value={search}
             onChange={(e) => setSearch((e.target as HTMLInputElement).value)}
-            placeholder="Search"
+            placeholder={t('placeholder.search', 'Search')}
             className="w-[300px]"
           />
           <Button
@@ -110,7 +115,7 @@ export default function ClientsPage() {
             }}
             className="h-9"
           >
-            Add Client
+            {t('clients.add', 'Add Client')}
           </Button>
         </div>
         <div className="rounded-md bg-white p-4 shadow">
@@ -146,7 +151,9 @@ export default function ClientsPage() {
                     </div>
                   </TableHead>
                 ))}
-                <TableHead className="w-[150px]">Actions</TableHead>
+                <TableHead className="w-[150px]">
+                  {t('table.actions', 'Actions')}
+                </TableHead>
               </tr>
             </TableHeader>
             <TableBody>
@@ -171,7 +178,9 @@ export default function ClientsPage() {
               <PaginationItem>
                 <PaginationPrevious
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                />
+                >
+                  {t('pagination.prev', 'Previous')}
+                </PaginationPrevious>
               </PaginationItem>
               {displayedPages.map((value) => (
                 <PaginationItem key={value}>
@@ -188,7 +197,9 @@ export default function ClientsPage() {
                   onClick={() =>
                     setPage((p) => Math.min(clients?.totalPages || 0, p + 1))
                   }
-                />
+                >
+                  {t('pagination.next', 'Next')}
+                </PaginationNext>
               </PaginationItem>
             </PaginationContent>
           </Pagination>

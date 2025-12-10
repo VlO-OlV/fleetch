@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { CreateClientDto, createClientSchema } from '@/validation/client';
 import { useClient } from '@/hooks/use-client';
 import { ClientResponse } from '@/types/client';
+import { useI18n } from '@/lib/i18n';
 
 interface ClientActionDialogProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ const ClientDialogForm: FC<ClientActionDialogProps> = ({
   onOpenChange,
 }) => {
   const { createClient, updateClient } = useClient({ id: client?.id });
+  const { t } = useI18n();
 
   const defaultValues: CreateClientDto = useMemo(
     () => ({
@@ -66,9 +68,12 @@ const ClientDialogForm: FC<ClientActionDialogProps> = ({
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>First Name</FormLabel>
+              <FormLabel>{t('form.firstName', 'First Name')}</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="First name" />
+                <Input
+                  {...field}
+                  placeholder={t('form.firstName', 'First name')}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -79,9 +84,12 @@ const ClientDialogForm: FC<ClientActionDialogProps> = ({
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Last Name</FormLabel>
+              <FormLabel>{t('form.lastName', 'Last Name')}</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Last name" />
+                <Input
+                  {...field}
+                  placeholder={t('form.lastName', 'Last name')}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -92,9 +100,12 @@ const ClientDialogForm: FC<ClientActionDialogProps> = ({
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Middle Name</FormLabel>
+              <FormLabel>{t('form.middleName', 'Middle Name')}</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Middle name" />
+                <Input
+                  {...field}
+                  placeholder={t('form.middleName', 'Middle name')}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -105,9 +116,12 @@ const ClientDialogForm: FC<ClientActionDialogProps> = ({
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Phone Number</FormLabel>
+              <FormLabel>{t('form.phoneNumber', 'Phone Number')}</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Phone number" />
+                <Input
+                  {...field}
+                  placeholder={t('form.phoneNumber', 'Phone number')}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -115,9 +129,9 @@ const ClientDialogForm: FC<ClientActionDialogProps> = ({
         />
         <div className="flex gap-2 justify-end pt-2">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {t('button.cancel', 'Cancel')}
           </Button>
-          <Button type="submit">Save</Button>
+          <Button type="submit">{t('button.save', 'Save')}</Button>
         </div>
       </form>
     </Form>
@@ -127,10 +141,16 @@ const ClientDialogForm: FC<ClientActionDialogProps> = ({
 export const ClientActionDialog: FC<ClientActionDialogProps> = ({
   ...props
 }) => {
+  const { t } = useI18n();
+
   return (
     <Dialog open={props.isOpen} onOpenChange={props.onOpenChange}>
       <DialogContent>
-        <DialogTitle>{props.client ? 'Edit Client' : 'Add Client'}</DialogTitle>
+        <DialogTitle>
+          {props.client
+            ? t('dialog.editClient', 'Edit Client')
+            : t('dialog.addClient', 'Add Client')}
+        </DialogTitle>
         <ClientDialogForm {...props} />
       </DialogContent>
     </Dialog>

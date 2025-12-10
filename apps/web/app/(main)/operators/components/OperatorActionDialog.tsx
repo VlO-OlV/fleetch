@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useUser } from '@/hooks/use-user';
 import { UserResponse } from '@/types/user';
 import { CreateUserDto, createUserSchema } from '@/validation/user';
+import { useI18n } from '@/lib/i18n';
 
 interface OperatorActionDialogProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ const OperatorDialogForm: FC<OperatorActionDialogProps> = ({
   onOpenChange,
 }) => {
   const { createOperator, updateOperator } = useUser({ id: operator?.id });
+  const { t } = useI18n();
 
   const defaultValues: CreateUserDto = useMemo(
     () => ({
@@ -68,9 +70,12 @@ const OperatorDialogForm: FC<OperatorActionDialogProps> = ({
             name="firstName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>First name</FormLabel>
+                <FormLabel>{t('form.firstName', 'First name')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="John" {...field} />
+                  <Input
+                    placeholder={t('form.firstNamePlaceholder', 'John')}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -81,9 +86,12 @@ const OperatorDialogForm: FC<OperatorActionDialogProps> = ({
             name="middleName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Middle name</FormLabel>
+                <FormLabel>{t('form.middleName', 'Middle name')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Johnson" {...field} />
+                  <Input
+                    placeholder={t('form.middleNamePlaceholder', 'Johnson')}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -94,9 +102,12 @@ const OperatorDialogForm: FC<OperatorActionDialogProps> = ({
             name="lastName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Last name</FormLabel>
+                <FormLabel>{t('form.lastName', 'Last name')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Doe" {...field} />
+                  <Input
+                    placeholder={t('form.lastNamePlaceholder', 'Doe')}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -109,9 +120,12 @@ const OperatorDialogForm: FC<OperatorActionDialogProps> = ({
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Phone</FormLabel>
+              <FormLabel>{t('form.phoneNumber', 'Phone')}</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Phone number" />
+                <Input
+                  {...field}
+                  placeholder={t('form.phoneNumber', 'Phone number')}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -123,9 +137,9 @@ const OperatorDialogForm: FC<OperatorActionDialogProps> = ({
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t('form.email', 'Email')}</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Email" />
+                <Input {...field} placeholder={t('form.email', 'Email')} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -134,9 +148,9 @@ const OperatorDialogForm: FC<OperatorActionDialogProps> = ({
 
         <div className="flex gap-2 justify-end pt-2">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {t('button.cancel', 'Cancel')}
           </Button>
-          <Button type="submit">Save</Button>
+          <Button type="submit">{t('button.save', 'Save')}</Button>
         </div>
       </form>
     </Form>
@@ -146,11 +160,14 @@ const OperatorDialogForm: FC<OperatorActionDialogProps> = ({
 export const OpearatorActionDialog: FC<OperatorActionDialogProps> = ({
   ...props
 }) => {
+  const { t } = useI18n();
   return (
     <Dialog open={props.isOpen} onOpenChange={props.onOpenChange}>
       <DialogContent>
         <DialogTitle>
-          {props.operator ? 'Edit Operator' : 'Add Operator'}
+          {props.operator
+            ? t('dialog.editOperator', 'Edit Operator')
+            : t('dialog.addOperator', 'Add Operator')}
         </DialogTitle>
         <OperatorDialogForm {...props} />
       </DialogContent>

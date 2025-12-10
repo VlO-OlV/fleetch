@@ -1,6 +1,7 @@
 'use client';
 
 import { useRide } from '@/hooks/use-ride';
+import { useI18n } from '@/lib/i18n';
 import { PaymentTypeToDetailsMap } from '@/lib/consts';
 import { PaymentType } from '@/types/ride';
 import { useMemo } from 'react';
@@ -8,26 +9,27 @@ import { PieChart, Pie, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function RidesByPaymentPie() {
   const { paymentTypeStats } = useRide({});
+  const { t } = useI18n();
 
   const chartData = useMemo(
     () => [
       {
-        label: PaymentTypeToDetailsMap[PaymentType.CASH].label,
+        label: t(PaymentTypeToDetailsMap[PaymentType.CASH].label, 'Cash'),
         value: paymentTypeStats?.cashCount || 0,
         fill: PaymentTypeToDetailsMap[PaymentType.CASH].color,
       },
       {
-        label: PaymentTypeToDetailsMap[PaymentType.CARD].label,
+        label: t(PaymentTypeToDetailsMap[PaymentType.CARD].label, 'Card'),
         value: paymentTypeStats?.cardCount || 0,
         fill: PaymentTypeToDetailsMap[PaymentType.CARD].color,
       },
       {
-        label: PaymentTypeToDetailsMap[PaymentType.CRYPTO].label,
+        label: t(PaymentTypeToDetailsMap[PaymentType.CRYPTO].label, 'Crypto'),
         value: paymentTypeStats?.cryptoCount || 0,
         fill: PaymentTypeToDetailsMap[PaymentType.CRYPTO].color,
       },
     ],
-    [paymentTypeStats],
+    [paymentTypeStats, t],
   );
 
   return (

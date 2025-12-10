@@ -26,10 +26,12 @@ import { useCallback, useEffect } from 'react';
 import { AxiosError } from 'axios';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useI18n } from '@/lib/i18n';
 
 export default function VerifyOTPPage() {
   const router = useRouter();
   const { verifyPasswordReset, forgotPassword } = useAuth();
+  const { t } = useI18n();
 
   const resetPasswordEmail = localStorage.getItem(
     StorageKey.RESET_PASSWORD_EMAIL,
@@ -67,12 +69,12 @@ export default function VerifyOTPPage() {
         { email },
         {
           onSuccess: () => {
-            toast.success('Check your email');
+            toast.success(t('auth.verify.checkEmail', 'Check your email'));
           },
         },
       );
     },
-    [forgotPassword],
+    [forgotPassword, t],
   );
 
   const isOtpError = !!form.formState.errors.code;
@@ -83,9 +85,11 @@ export default function VerifyOTPPage() {
         <div className="flex items-center gap-4 mb-4">
           <Image src="/logo.png" alt="logo" width={120} height={120} />
         </div>
-        <h1 className="text-xl font-semibold mb-2">Verify email</h1>
+        <h1 className="text-xl font-semibold mb-2">
+          {t('auth.verify.title', 'Verify email')}
+        </h1>
         <p className="text-sm text-gray-600 mb-6">
-          Enter the code sent to your email
+          {t('auth.verify.enterCode', 'Enter the code sent to your email')}
         </p>
 
         <Form {...form}>
@@ -98,7 +102,7 @@ export default function VerifyOTPPage() {
               name="code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Code</FormLabel>
+                  <FormLabel>{t('auth.verify.code', 'Code')}</FormLabel>
                   <FormControl>
                     <InputOTP maxLength={6} {...field}>
                       <InputOTPGroup className="flex-1">
@@ -144,7 +148,7 @@ export default function VerifyOTPPage() {
             />
 
             <Button type="submit" className="flex-1">
-              Verify
+              {t('auth.verify.verify', 'Verify')}
             </Button>
 
             <div className="flex justify-center text-sm">
@@ -158,7 +162,7 @@ export default function VerifyOTPPage() {
                 }
                 className="text-sky-600 p-0 h-4"
               >
-                Send new code
+                {t('auth.verify.sendNew', 'Send new code')}
               </Button>
             </div>
           </form>

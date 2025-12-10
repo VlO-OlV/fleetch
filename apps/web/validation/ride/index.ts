@@ -4,12 +4,12 @@ import z from 'zod';
 export const createRideClassSchema = z.object({
   name: z
     .string()
-    .min(1, 'Ride class name is required')
-    .max(20, 'Ride class name is too long'),
+    .min(1, 'validation.rideClass.name.required')
+    .max(20, 'validation.rideClass.name.tooLong'),
   priceCoefficient: z
     .number()
-    .min(1, 'Price coefficient must be at least 1')
-    .max(5, 'Price coefficient is too high'),
+    .min(1, 'validation.priceCoefficient.min')
+    .max(5, 'validation.priceCoefficient.max'),
 });
 
 export type CreateRideClassDto = z.infer<typeof createRideClassSchema>;
@@ -21,8 +21,8 @@ export type UpdateRideClassDto = z.infer<typeof updateRideClassSchema>;
 export const createExtraOptionSchema = z.object({
   name: z
     .string()
-    .min(1, 'Extra option name is required')
-    .max(20, 'Extra option name is too long'),
+    .min(1, 'validation.extraOption.name.required')
+    .max(20, 'validation.extraOption.name.tooLong'),
 });
 
 export type CreateExtraOptionDto = z.infer<typeof createExtraOptionSchema>;
@@ -44,13 +44,19 @@ export const createRideSchema = z.object({
       z.object({
         latitude: z.number().min(-90).max(90),
         longitude: z.number().min(-180).max(180),
-        address: z.string().min(1, 'Address must be specified'),
+        address: z.string().min(1, 'validation.location.address.required'),
         type: z.enum(LocationType),
       }),
     )
-    .min(2, 'At least start and end locations are required')
-    .max(10, 'Only up to 10 locations can be specified'),
-  scheduledAt: z.date().optional(),
+    .min(2, 'validation.locations.min')
+    .max(10, 'validation.locations.max'),
+  scheduledAt: z
+    .date()
+    .optional()
+    .nullable()
+    .refine((date) => {
+      return date ? date.getTime() > Date.now() : true;
+    }, 'Scheduled time must be in the future'),
 });
 
 export type CreateRideDto = z.infer<typeof createRideSchema>;

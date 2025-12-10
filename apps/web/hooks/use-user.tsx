@@ -10,6 +10,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
+import { useI18n } from '@/lib/i18n';
 
 export const useUser = ({
   hideToast,
@@ -77,12 +78,14 @@ export const useUser = ({
     return response.data;
   };
 
+  const { t } = useI18n();
+
   const updateMeMutation = useMutation({
     mutationKey: [MutationKey.UPDATE_ME],
     mutationFn: updateMe,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.ME] });
-      toast.success('Profile updated');
+      toast.success(t('toast.profile.updated', 'Profile updated'));
     },
   });
 
@@ -112,7 +115,7 @@ export const useUser = ({
     mutationFn: createOperator,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.USERS] });
-      toast.success('Operator created');
+      toast.success(t('toast.operator.created', 'Operator created'));
     },
   });
 
@@ -132,7 +135,7 @@ export const useUser = ({
     mutationFn: updateOperator,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.USERS] });
-      toast.success('Operator updated');
+      toast.success(t('toast.operator.updated', 'Operator updated'));
     },
   });
 
@@ -151,7 +154,7 @@ export const useUser = ({
     mutationFn: deleteOperator,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QueryKey.USERS] });
-      toast.success('Operator deleted');
+      toast.success(t('toast.operator.deleted', 'Operator deleted'));
     },
   });
 

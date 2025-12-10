@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import StatusBadge from '@/app/(main)/components/StatusBadge';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -42,9 +41,11 @@ import { PaymentTypeToDetailsMap, RideStatusToDetailsMap } from '@/lib/consts';
 import { useRideClass } from '@/hooks/use-ride-class';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { OrderTableRow } from './components/OrderTableRow';
+import { useI18n } from '@/lib/i18n';
 
 export default function OrdersPage() {
   const router = useRouter();
+  const { t } = useI18n();
 
   const [search, setSearch] = useState<string>('');
   const [sort, setSort] = useState<SortingDto<RideResponse>>({});
@@ -68,34 +69,34 @@ export default function OrdersPage() {
     () => [
       {
         key: 'clientId',
-        label: 'Client',
+        label: t('orders.detail.customer', 'Client'),
       },
       {
         key: 'driverId',
-        label: 'Driver',
+        label: t('drivers.title', 'Driver'),
       },
       {
         key: 'operatorId',
-        label: 'Operator',
+        label: t('operators.title', 'Operator'),
       },
       {
         key: 'status',
-        label: 'Status',
+        label: t('orders.detail.status', 'Status'),
       },
       {
         key: 'paymentType',
-        label: 'Payment',
+        label: t('orders.detail.amount', 'Payment'),
       },
       {
         key: 'totalPrice',
-        label: 'Total Price',
+        label: t('orders.detail.totalPrice', 'Total Price'),
       },
       {
         key: 'rideClassId',
-        label: 'Ride Class',
+        label: t('drivers.table.rideClass', 'Ride Class'),
       },
     ],
-    [],
+    [t],
   );
 
   const displayedPages = useMemo(() => {
@@ -112,12 +113,14 @@ export default function OrdersPage() {
   return (
     <div className="w-full">
       <main>
-        <h1 className="text-2xl font-semibold mb-4">Orders</h1>
+        <h1 className="text-2xl font-semibold mb-4">
+          {t('orders.title', 'Orders')}
+        </h1>
         <div className="flex gap-2 mb-4 items-center">
           <Input
             value={search}
             onChange={(e) => setSearch((e.target as HTMLInputElement).value)}
-            placeholder="Search"
+            placeholder={t('orders.search', 'Search')}
             className="w-[320px]"
           />
           <Select
@@ -127,14 +130,16 @@ export default function OrdersPage() {
             value={filter?.status}
           >
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="All statuses" />
+              <SelectValue
+                placeholder={t('drivers.allStatuses', 'All statuses')}
+              />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 {Object.entries(RideStatusToDetailsMap).map(
                   ([status, { label }]) => (
                     <SelectItem key={status} value={status}>
-                      {label}
+                      {t(label, status)}
                     </SelectItem>
                   ),
                 )}
@@ -149,14 +154,16 @@ export default function OrdersPage() {
             value={filter?.paymentType}
           >
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="All payments" />
+              <SelectValue
+                placeholder={t('drivers.allClasses', 'All payments')}
+              />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 {Object.entries(PaymentTypeToDetailsMap).map(
                   ([status, { label }]) => (
                     <SelectItem key={status} value={status}>
-                      {label}
+                      {t(label, status)}
                     </SelectItem>
                   ),
                 )}
@@ -171,7 +178,9 @@ export default function OrdersPage() {
             value={filter?.rideClass}
           >
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="All classes" />
+              <SelectValue
+                placeholder={t('drivers.allClasses', 'All classes')}
+              />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -184,7 +193,7 @@ export default function OrdersPage() {
             </SelectContent>
           </Select>
           <Button onClick={() => router.push('/orders/create')} className="h-9">
-            Create a ride
+            {t('orders.add', 'Create a ride')}
           </Button>
         </div>
         <div className="rounded-md bg-white p-4 shadow">
@@ -220,7 +229,7 @@ export default function OrdersPage() {
                     </div>
                   </TableHead>
                 ))}
-                <TableHead>Actions</TableHead>
+                <TableHead>{t('table.actions', 'Actions')}</TableHead>
               </tr>
             </TableHeader>
             <TableBody>
@@ -234,7 +243,9 @@ export default function OrdersPage() {
               <PaginationItem>
                 <PaginationPrevious
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                />
+                >
+                  {t('pagination.prev', 'Previous')}
+                </PaginationPrevious>
               </PaginationItem>
               {displayedPages.map((value) => (
                 <PaginationItem key={value}>
@@ -251,7 +262,9 @@ export default function OrdersPage() {
                   onClick={() =>
                     setPage((p) => Math.min(rides?.totalPages || 0, p + 1))
                   }
-                />
+                >
+                  {t('pagination.next', 'Next')}
+                </PaginationNext>
               </PaginationItem>
             </PaginationContent>
           </Pagination>
