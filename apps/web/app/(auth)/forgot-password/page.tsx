@@ -13,22 +13,27 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-
-type ForgotPasswordValues = {
-  email: string;
-};
+import { ForgotPasswordDto, forgotPasswordSchema } from '@/validation/auth';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
+import { Route } from '@/lib/consts';
+import { useI18n } from '@/lib/i18n';
 
 export default function ForgotPasswordPage() {
-  const form = useForm<ForgotPasswordValues>({
+  const router = useRouter();
+  const { forgotPassword } = useAuth();
+  const { t } = useI18n();
+
+  const form = useForm<ForgotPasswordDto>({
+    resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
       email: '',
     },
   });
 
-  function onSubmit(values: ForgotPasswordValues) {
-    // Placeholder: wire to your forgot password logic
-    console.log('Reset password for', values.email);
-    alert('Reset link sent to: ' + values.email);
+  function onSubmit(data: ForgotPasswordDto) {
+    forgotPassword({ ...data });
   }
 
   return (
@@ -37,7 +42,9 @@ export default function ForgotPasswordPage() {
         <div className="flex items-center gap-4 mb-4">
           <Image src="/logo.png" alt="logo" width={120} height={120} />
         </div>
-        <h1 className="text-xl font-semibold mb-4">Reset password</h1>
+        <h1 className="text-xl font-semibold mb-4">
+          {t('auth.forgot.title', 'Reset password')}
+        </h1>
 
         <Form {...form}>
           <form
@@ -49,9 +56,13 @@ export default function ForgotPasswordPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t('login.email', 'Email')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Email" type="email" {...field} />
+                    <Input
+                      placeholder={t('login.email', 'Email')}
+                      type="email"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -59,13 +70,17 @@ export default function ForgotPasswordPage() {
             />
 
             <Button type="submit" className="flex-1 mt-2">
-              Send reset link
+              {t('auth.forgot.send', 'Send reset link')}
             </Button>
 
             <div className="flex justify-center text-sm mt-3">
-              <Link href="/login" className="text-sky-600">
-                Back to login
-              </Link>
+              <Button
+                variant={'link'}
+                onClick={() => router.push(Route.LOGIN)}
+                className="text-sky-600 h-4 p-0"
+              >
+                {t('auth.forgot.back', 'Back to login')}
+              </Button>
             </div>
           </form>
         </Form>

@@ -8,7 +8,7 @@ import { Request } from 'express';
 import { UserRole } from 'generated/prisma';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class AdminGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest() as Request;
     if (request.user.role !== UserRole.ADMIN) {

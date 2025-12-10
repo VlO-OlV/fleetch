@@ -18,7 +18,17 @@ export class RideClassRepository {
     where: Prisma.RideClassWhereInput,
     tx?: Prisma.TransactionClient,
   ) {
-    return (tx ?? this.prisma).rideClass.findMany({ where });
+    return (tx ?? this.prisma).rideClass.findMany({
+      where,
+      orderBy: { priceCoefficient: 'asc' },
+    });
+  }
+
+  public async count(
+    where: Prisma.RideClassWhereInput,
+    tx?: Prisma.TransactionClient,
+  ) {
+    return (tx ?? this.prisma).rideClass.count({ where });
   }
 
   public async create(

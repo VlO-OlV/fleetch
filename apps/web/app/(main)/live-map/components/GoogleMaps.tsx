@@ -1,57 +1,69 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   GoogleMap,
-  LoadScript,
   Marker,
   DirectionsRenderer,
+  LoadScriptNext,
 } from '@react-google-maps/api';
-
-const containerStyle = {
-  width: '100%',
-  height: '500px',
-};
+import { RouteFlagStatus } from '../../orders/create/page';
 
 const defaultCenter = {
-  lat: 37.7749,
-  lng: -122.4194,
+  lat: 50.4427,
+  lng: 30.5218,
 };
 
-const GoogleMapComponent: FC = () => {
-  const [locations, setLocations] = useState<google.maps.LatLngLiteral[]>([]);
+interface GoogleMapComponentProps {
+  routeFlagStatus?: RouteFlagStatus;
+  locations?: { lat: number; lng: number; address: string }[];
+  onLocationChange?: (lat: number, lng: number, address: string) => void;
+  onRouteChange?: (distance: number) => void;
+}
+
+const GoogleMapComponent: FC<GoogleMapComponentProps> = ({
+  locations,
+  routeFlagStatus,
+  onLocationChange,
+  onRouteChange,
+}) => {
   const [directions, setDirections] =
     useState<google.maps.DirectionsResult | null>(null);
-  const [distance, setDistance] = useState<string | null>(null);
-  const [duration, setDuration] = useState<string | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
 
   const onLoad = (mapInstance: google.maps.Map) => {
     setMap(mapInstance);
   };
 
-  const onMapClick = (event: google.maps.MapMouseEvent) => {
-    if (event.latLng) {
-      const newLocation = {
-        lat: event.latLng.lat(),
-        lng: event.latLng.lng(),
-      };
-      setLocations((prev) => [...prev, newLocation]);
-    }
-  };
+  const onMapClick = useCallback(
+    (event: google.maps.MapMouseEvent) => {
+      const geocoder = new google.maps.Geocoder();
 
-  const calculateRoute = () => {
-    if (locations.length < 2 || !map) return;
+      if (event.latLng) {
+        const lat = event.latLng.lat();
+        const lng = event.latLng.lng();
 
-    const directionsService = new google.maps.DirectionsService();
+        geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+          if (status === 'OK' && results && results[0]) {
+            onLocationChange?.(lat, lng, results[0].formatted_address);
+          }
+        });
+      }
+    },
+    [onLocationChange],
+  );
 
-    // Origin: first point, Destination: last point, Waypoints: middle points
+  const calculateRoute = useCallback(() => {
+    if (!locations || locations.length < 2 || !map) return;
+
     const origin = locations[0];
     const destination = locations[locations.length - 1];
     const waypoints = locations.slice(1, -1).map((loc) => ({
       location: loc,
-      stopover: true, // Allows stopping at the waypoint
+      stopover: true,
     }));
+
+    const directionsService = new google.maps.DirectionsService();
 
     directionsService.route(
       {
@@ -64,52 +76,57 @@ const GoogleMapComponent: FC = () => {
       (result, status) => {
         if (status === google.maps.DirectionsStatus.OK && result) {
           setDirections(result);
-          // Sum up total distance and duration from all legs
           const totalDistance =
             result.routes[0].legs.reduce(
               (acc, leg) => acc + (leg.distance?.value || 0),
               0,
-            ) / 1000; // in km
-          const totalDuration =
-            result.routes[0].legs.reduce(
-              (acc, leg) => acc + (leg.duration?.value || 0),
-              0,
-            ) / 60; // in minutes
-          setDistance(`${totalDistance.toFixed(1)} km`);
-          setDuration(`${Math.round(totalDuration)} minutes`);
-        } else {
-          console.error('Error fetching directions:', status);
+            ) / 1000;
+          onRouteChange?.(+totalDistance.toFixed(1));
         }
       },
     );
-  };
+  }, [locations, onRouteChange, map]);
+
+  useEffect(() => {
+    if (routeFlagStatus === RouteFlagStatus.IN_PROGRESS && !!map) {
+      calculateRoute();
+      return;
+    }
+    if (routeFlagStatus === RouteFlagStatus.IDLE) {
+      (() => setDirections(null))();
+    }
+  }, [routeFlagStatus, !!map]);
 
   return (
-    <LoadScript
-      googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
-    >
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={defaultCenter}
-        zoom={10}
-        onLoad={onLoad}
-        onClick={onMapClick}
-        options={{
-          disableDefaultUI: true,
-        }}
+    <>
+      <LoadScriptNext
+        googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
+        language="en-US"
       >
-        {locations.map((loc, index) => (
-          <Marker key={index} position={loc} label={`Pin ${index + 1}`} />
-        ))}
-        {directions && <DirectionsRenderer directions={directions} />}
-      </GoogleMap>
-      <button onClick={calculateRoute}>Calculate and Render Route</button>
-      {distance && (
-        <p>
-          Total Distance: {distance} (Estimated Duration: {duration})
-        </p>
-      )}
-    </LoadScript>
+        <GoogleMap
+          mapContainerStyle={{
+            width: '100%',
+            height: '100%',
+          }}
+          center={defaultCenter}
+          zoom={10}
+          onLoad={onLoad}
+          onClick={onMapClick}
+          options={{
+            disableDefaultUI: true,
+          }}
+        >
+          {locations?.map(
+            (loc, index) =>
+              loc.lat &&
+              loc.lng && (
+                <Marker key={index} position={loc} label={`${index + 1}`} />
+              ),
+          )}
+          {directions && <DirectionsRenderer directions={directions} />}
+        </GoogleMap>
+      </LoadScriptNext>
+    </>
   );
 };
 

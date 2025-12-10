@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { RideClassRepository } from '../../database/repositories/ride-class.repository';
 
@@ -30,6 +34,12 @@ export class RideClassService {
   }
 
   public async create(dto: CreateRideClassDto) {
+    const rideClassesCount = await this.rideClassRepository.count({});
+
+    if (rideClassesCount >= 20) {
+      throw new BadRequestException('Cannot create more than 20 ride classes');
+    }
+
     return this.rideClassRepository.create({ ...dto });
   }
 

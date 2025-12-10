@@ -15,36 +15,46 @@ export class DriverService {
     const {
       page = 1,
       limit = 10,
-      firstName,
-      lastName,
-      phoneNumber,
       status,
+      rideClassId,
+      sortBy,
+      sortOrder = 'asc',
     } = query;
 
     const where: Prisma.DriverWhereInput = {};
-    if (firstName) {
-      where.firstName = { contains: firstName, mode: 'insensitive' };
-    }
-    if (lastName) {
-      where.lastName = { contains: lastName, mode: 'insensitive' };
-    }
-    if (phoneNumber) {
-      where.phoneNumber = { contains: phoneNumber };
-    }
     if (status) {
       where.status = status;
+    }
+    if (rideClassId) {
+      where.rideClassId = rideClassId;
+    }
+    if (query.search) {
+      where.OR = [
+        { firstName: { contains: query.search, mode: 'insensitive' } },
+        { middleName: { contains: query.search, mode: 'insensitive' } },
+        { lastName: { contains: query.search, mode: 'insensitive' } },
+        { phoneNumber: { contains: query.search, mode: 'insensitive' } },
+        { carNumber: { contains: query.search, mode: 'insensitive' } },
+      ];
     }
 
     const drivers = await this.driverRepository.findMany(
       where,
       limit,
       (page - 1) * limit,
+      sortBy
+        ? {
+            ...(sortBy === 'rideClassId'
+              ? { rideClass: { name: sortOrder } }
+              : { [sortBy]: sortOrder }),
+          }
+        : undefined,
     );
     const totalDrivers = await this.driverRepository.count(where);
 
     return {
       data: [...drivers],
-      total: totalDrivers,
+      totalPages: Math.ceil(totalDrivers / limit),
       page,
       limit,
     };
@@ -58,6 +68,9 @@ export class DriverService {
     }
 
     return driver;
+  }
+  public async count() {
+    return this.driverRepository.count({});
   }
 
   public async create(dto: CreateDriverDto) {

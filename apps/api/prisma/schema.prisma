@@ -102,6 +102,7 @@ model Ride {
   rideClassId      String            @map("ride_class_id")
   locations        Location[]
   rideExtraOptions RideExtraOption[]
+  scheduledAt      DateTime?         @map("scheduled_at")
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at")
 
@@ -169,6 +170,7 @@ model Location {
   rideId    String       @map("ride_id")
   latitude  Float
   longitude Float
+  address   String
   type      LocationType @default(START)
   createdAt DateTime     @default(now()) @map("created_at")
   updatedAt DateTime     @default(now()) @updatedAt @map("updated_at")

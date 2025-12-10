@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtGuard } from 'src/common/guards/jwt/jwt.guard';
+import { FileByIdPipe } from 'src/common/pipes/file-by-id.pipe';
 
 import { FileService } from './file.service';
 
@@ -19,16 +20,16 @@ export class FileController {
 
   @UseGuards(JwtGuard)
   @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: 21 * 1000 * 1000 } }),
+    FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }),
   )
   @Post()
   public async uploadFile(@UploadedFile() file: Express.Multer.File) {
     return this.fileService.uploadFile(file);
   }
 
-  @Get(':key')
-  public async getFile(@Param('key') key: string) {
-    const { file, contentType, fileName } = await this.fileService.getFile(key);
+  @Get(':id')
+  public async getFile(@Param('id', FileByIdPipe) id: string) {
+    const { file, contentType, fileName } = await this.fileService.getFile(id);
 
     return new StreamableFile(file, {
       type: contentType,

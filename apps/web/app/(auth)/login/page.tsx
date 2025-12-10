@@ -13,24 +13,28 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-
-type LoginValues = {
-  email: string;
-  password: string;
-};
+import { LoginDto, loginSchema } from '@/validation/auth';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '@/hooks/use-auth';
+import { ApiEndpoint, Route } from '@/lib/consts';
+import { useRouter } from 'next/navigation';
+import { useI18n } from '@/lib/i18n';
 
 export default function LoginPage() {
-  const form = useForm<LoginValues>({
+  const router = useRouter();
+  const { login } = useAuth();
+  const { t } = useI18n();
+
+  const form = useForm<LoginDto>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
       password: '',
     },
   });
 
-  function onSubmit(values: LoginValues) {
-    // Placeholder: wire to your auth logic
-    console.log('Sign in', values);
-    alert('Sign in: ' + values.email);
+  function onSubmit(data: LoginDto) {
+    login({ ...data });
   }
 
   return (
@@ -39,7 +43,9 @@ export default function LoginPage() {
         <div className="flex items-center gap-4 mb-4">
           <Image src="/logo.png" alt="logo" width={120} height={120} />
         </div>
-        <h1 className="text-xl font-semibold mb-4">Login</h1>
+        <h1 className="text-xl font-semibold mb-4">
+          {t('auth.login.title', 'Login')}
+        </h1>
 
         <Form {...form}>
           <form
@@ -51,9 +57,9 @@ export default function LoginPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t('login.email', 'Email')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Email" {...field} />
+                    <Input placeholder={t('login.email', 'Email')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -65,25 +71,33 @@ export default function LoginPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>{t('login.password', 'Password')}</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Password" {...field} />
+                    <Input
+                      type="text"
+                      placeholder={t('login.password', 'Password')}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <Button type="submit" className="flex-1">
-              Sign in
+              {t('auth.login.signIn', 'Sign in')}
             </Button>
 
             <Button
               type="button"
               variant="outline"
               className="flex-1"
-              onClick={() => alert('Google sign-in placeholder')}
+              onClick={() =>
+                router.push(
+                  process.env.NEXT_PUBLIC_BACKEND_URL + ApiEndpoint.GOOGLE_AUTH,
+                )
+              }
             >
-              <p>Sign in with Google</p>
+              <p>{t('auth.login.signInWithGoogle', 'Sign in with Google')}</p>
               <Image
                 src="/google-logo.png"
                 alt="google-logo"
@@ -93,9 +107,14 @@ export default function LoginPage() {
             </Button>
 
             <div className="flex justify-end text-sm mt-2">
-              <Link href="/forgot-password" className="text-sky-600">
-                Forgot password?
-              </Link>
+              <Button
+                variant={'link'}
+                type="button"
+                onClick={() => router.push(Route.FORGOT_PASSWORD)}
+                className="text-sky-600 p-0 h-4"
+              >
+                {t('auth.login.forgot', 'Forgot password?')}
+              </Button>
             </div>
           </form>
         </Form>

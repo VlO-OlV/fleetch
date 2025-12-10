@@ -6,6 +6,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { FileMetadata } from 'generated/prisma';
 import { FileRepository } from 'src/database/repositories/file.repository';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -28,7 +29,7 @@ export class FileService {
     });
   }
 
-  public async uploadFile(file: Express.Multer.File): Promise<void> {
+  public async uploadFile(file: Express.Multer.File): Promise<FileMetadata> {
     const key = `${uuidv4()}-${new Date().toISOString().replaceAll(':', '')}`;
     const params: PutObjectCommandInput = {
       Bucket: this.configService.get<string>('aws.bucket'),
@@ -39,11 +40,21 @@ export class FileService {
 
     await this.s3Client.send(new PutObjectCommand(params));
 
-    await this.fileRepository.create({
+    return this.fileRepository.create({
       key,
       type: file.mimetype,
       name: file.originalname,
     });
+  }
+
+  public async getFileMetadataById(id: string): Promise<FileMetadata | null> {
+    return this.fileRepository.findOne({ id });
+  }
+
+  public async deleteFileMetadataById(
+    id: string,
+  ): Promise<FileMetadata | null> {
+    return this.fileRepository.deleteOne({ id });
   }
 
   public async getFile(id: string): Promise<{
@@ -51,7 +62,7 @@ export class FileService {
     contentType: string;
     fileName: string;
   }> {
-    const fileMetadata = await this.fileRepository.findOne({ id });
+    const fileMetadata = await this.getFileMetadataById(id);
 
     if (!fileMetadata) {
       throw new NotFoundException('File not found');

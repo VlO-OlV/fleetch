@@ -15,6 +15,7 @@ import { UserService } from '../user/user.service';
 
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
+import { VerifyCodeDto } from './dtos/verify-code.dto';
 
 @Injectable()
 export class AuthService {
@@ -88,6 +89,16 @@ export class AuthService {
     );
   }
 
+  private generateCode() {
+    const symbols = '0123456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      const randomIndex = Math.floor(Math.random() * symbols.length);
+      code += symbols[randomIndex];
+    }
+    return code;
+  }
+
   public async logout(user: UserPayload) {
     if (user.tokenId) {
       return this.tokenService.deleteById(user.tokenId);
@@ -114,13 +125,9 @@ export class AuthService {
       tokenType: TokenType.PASSWORD,
     });
 
-    const resetPasswordToken = await this.generateToken(
-      { userId: user.id },
-      'access',
-      3600 * 1000,
-    );
+    const resetPasswordCode = this.generateCode();
 
-    const hashedPasswordToken = await this.hashData(resetPasswordToken);
+    const hashedPasswordToken = await this.hashData(resetPasswordCode);
 
     await this.tokenService.create({
       userId: user.id,
@@ -128,13 +135,46 @@ export class AuthService {
       token: hashedPasswordToken,
     });
 
-    const fontendUrl = this.configService.get<string>(`frontend`);
-
     await this.emailService.sendEmail({
       subject: 'Password reset',
       to: email,
-      message: `Click here to reset your password: ${fontendUrl}/password/reset?token=${resetPasswordToken}`,
+      message: `Your verification code is: ${resetPasswordCode}`,
     });
+  }
+
+  public async verifyResetCode({ code, email }: VerifyCodeDto) {
+    const passwordTokens = await this.tokenService.findMany({
+      tokenType: TokenType.PASSWORD,
+      user: {
+        email,
+      },
+    });
+
+    if (!passwordTokens.length) {
+      throw new BadRequestException('Code not found');
+    }
+
+    const isMatch = await bcrypt.compare(code, passwordTokens[0].token);
+
+    if (
+      !isMatch ||
+      passwordTokens[0].createdAt.getTime() + 15 * 60 * 1000 < Date.now()
+    ) {
+      throw new BadRequestException('Code is invalid or expired');
+    }
+
+    await this.tokenService.deleteMany({
+      userId: passwordTokens[0].userId,
+      tokenType: TokenType.PASSWORD,
+    });
+
+    const accessToken = await this.generateToken(
+      { userId: passwordTokens[0].userId },
+      'access',
+      15 * 60 * 1000,
+    );
+
+    return { accessToken };
   }
 
   public async resetPassword(

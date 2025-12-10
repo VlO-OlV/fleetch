@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import * as bcrypt from 'bcrypt';
+import { State } from 'generated/prisma';
 import { Strategy } from 'passport-local';
 import { UserService } from 'src/modules/user/user.service';
 
@@ -21,6 +22,10 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
 
     if (!user) {
       throw new NotFoundException('User with such email not found');
+    }
+
+    if (user.state === State.PENDING) {
+      await this.userService.updateById(user.id, { state: State.VERIFIED });
     }
 
     const { password: hashedPassword, ...userData } = user;

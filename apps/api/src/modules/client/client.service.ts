@@ -12,29 +12,41 @@ export class ClientService {
   public constructor(private readonly clientRepository: ClientRepository) {}
 
   public async findMany(query: ClientQueryDto) {
-    const { page = 1, limit = 10, firstName, lastName, phoneNumber } = query;
+    const { page = 1, limit = 10, sortBy, sortOrder = 'asc', search } = query;
 
     const where: Prisma.ClientWhereInput = {};
-    if (firstName) {
-      where.firstName = { contains: firstName, mode: 'insensitive' };
-    }
-    if (lastName) {
-      where.lastName = { contains: lastName, mode: 'insensitive' };
-    }
-    if (phoneNumber) {
-      where.phoneNumber = { contains: phoneNumber };
+    if (search) {
+      where.OR = [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { middleName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { phoneNumber: { contains: search, mode: 'insensitive' } },
+      ];
     }
 
     const clients = await this.clientRepository.findMany(
       where,
       limit,
       (page - 1) * limit,
+      sortBy
+        ? {
+            ...(sortBy === 'totalRides'
+              ? { rides: { _count: sortOrder } }
+              : { [sortBy]: sortOrder }),
+          }
+        : undefined,
     );
     const totalClients = await this.clientRepository.count(where);
 
     return {
-      data: [...clients],
-      total: totalClients,
+      data: [
+        ...clients.map((client) => ({
+          ...client,
+          totalRides: client._count.rides,
+        })),
+      ],
+      totalItems: totalClients,
+      totalPages: Math.ceil(totalClients / limit),
       page,
       limit,
     };
@@ -47,7 +59,11 @@ export class ClientService {
       throw new NotFoundException('Client with such id not found');
     }
 
-    return client;
+    return { ...client, totalRides: client._count.rides };
+  }
+
+  public async count() {
+    return this.clientRepository.count({});
   }
 
   public async create(dto: CreateClientDto) {

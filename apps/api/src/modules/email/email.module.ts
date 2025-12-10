@@ -1,21 +1,27 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
 
 import { EmailService } from './email.service';
 
 @Module({
   imports: [
-    MailerModule.forRoot({
-      transport: {
-        host: process.env.SMTP_HOST,
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASSWORD,
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        transport: {
+          host: configService.get<string>('SMTP_HOST'),
+          secure: false,
+          auth: {
+            user: configService.get<string>('SMTP_USER'),
+            pass: configService.get<string>('SMTP_PASSWORD'),
+          },
         },
-      },
-      defaults: {
-        from: '"Fleetch" <noreply@fleetch.com>',
-      },
+        defaults: {
+          from: `Fleetch <${configService.get<string>('SMTP_USER')}>`,
+        },
+      }),
     }),
   ],
   providers: [EmailService],

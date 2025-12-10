@@ -16,9 +16,19 @@ export class UserRepository {
 
   public async findMany(
     where: Prisma.UserWhereInput,
+    take: number = 100,
+    skip: number = 0,
+    orderBy?: Prisma.UserOrderByWithRelationInput,
     tx?: Prisma.TransactionClient,
   ) {
-    return (tx ?? this.prisma).user.findMany({ where });
+    return (tx ?? this.prisma).user.findMany({ where, orderBy, take, skip });
+  }
+
+  public async count(
+    where: Prisma.UserWhereInput,
+    tx?: Prisma.TransactionClient,
+  ) {
+    return (tx ?? this.prisma).user.count({ where });
   }
 
   public async create(

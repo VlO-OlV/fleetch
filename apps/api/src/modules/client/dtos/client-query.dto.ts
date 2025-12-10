@@ -1,19 +1,8 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { Client } from 'generated/prisma';
 
 export class ClientQueryDto {
-  @IsOptional()
-  @IsString()
-  firstName?: string;
-
-  @IsOptional()
-  @IsString()
-  lastName?: string;
-
-  @IsOptional()
-  @IsString()
-  phoneNumber?: string;
-
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -25,4 +14,16 @@ export class ClientQueryDto {
   @IsInt()
   @Min(1)
   limit?: number;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsString()
+  sortBy?: keyof Client | 'totalRides';
+
+  @IsOptional()
+  @IsEnum(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc';
 }

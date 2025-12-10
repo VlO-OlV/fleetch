@@ -11,16 +11,37 @@ export class RideRepository {
     where: Prisma.RideWhereInput,
     tx?: Prisma.TransactionClient,
   ) {
-    return (tx ?? this.prisma).ride.findFirst({ where });
+    return (tx ?? this.prisma).ride.findFirst({
+      where,
+      include: {
+        driver: true,
+        operator: true,
+        rideClass: true,
+        client: true,
+        rideExtraOptions: { include: { extraOption: true } },
+        locations: true,
+      },
+    });
   }
 
   public async findMany(
     where: Prisma.RideWhereInput,
     take: number = 100,
     skip: number = 0,
+    orderBy?: Prisma.RideOrderByWithRelationInput,
     tx?: Prisma.TransactionClient,
   ) {
-    return (tx ?? this.prisma).ride.findMany({ where, take, skip });
+    return (tx ?? this.prisma).ride.findMany({
+      where,
+      include: {
+        driver: true,
+        operator: true,
+        rideClass: true,
+        client: true,
+      },
+      take,
+      skip,
+    });
   }
 
   public async count(

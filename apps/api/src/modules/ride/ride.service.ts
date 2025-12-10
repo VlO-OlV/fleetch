@@ -1,5 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from 'generated/prisma';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PaymentType, Prisma, RideStatus } from 'generated/prisma';
 import { PrismaService } from 'src/database/prisma.service';
 
 import { RideRepository } from '../../database/repositories/ride.repository';
@@ -31,8 +35,10 @@ export class RideService {
       limit = 10,
       status,
       paymentType,
-      clientId,
-      driverId,
+      rideClassId,
+      search,
+      sortBy,
+      sortOrder = 'asc',
     } = query;
 
     const where: Prisma.RideWhereInput = {};
@@ -42,23 +48,65 @@ export class RideService {
     if (paymentType) {
       where.paymentType = paymentType;
     }
-    if (clientId) {
-      where.clientId = clientId;
+    if (rideClassId) {
+      where.rideClassId = rideClassId;
     }
-    if (driverId) {
-      where.driverId = driverId;
+    if (search) {
+      where.OR = [
+        {
+          client: {
+            OR: [
+              { firstName: { contains: search, mode: 'insensitive' } },
+              { middleName: { contains: search, mode: 'insensitive' } },
+              { lastName: { contains: search, mode: 'insensitive' } },
+            ],
+          },
+        },
+        {
+          driver: {
+            OR: [
+              { firstName: { contains: search, mode: 'insensitive' } },
+              { middleName: { contains: search, mode: 'insensitive' } },
+              { lastName: { contains: search, mode: 'insensitive' } },
+            ],
+          },
+        },
+        {
+          operator: {
+            OR: [
+              { firstName: { contains: search, mode: 'insensitive' } },
+              { middleName: { contains: search, mode: 'insensitive' } },
+              { lastName: { contains: search, mode: 'insensitive' } },
+            ],
+          },
+        },
+      ];
+    }
+
+    const orderBy: Prisma.RideOrderByWithRelationInput = {};
+    if (sortBy === 'clientId') {
+      orderBy.client = { firstName: sortOrder };
+    } else if (sortBy === 'operatorId') {
+      orderBy.operator = { firstName: sortOrder };
+    } else if (sortBy === 'driverId') {
+      orderBy.driver = { firstName: sortOrder };
+    } else if (sortBy === 'rideClassId') {
+      orderBy.rideClass = { name: sortOrder };
+    } else if (sortBy) {
+      orderBy[sortBy] = sortOrder;
     }
 
     const rides = await this.rideRepository.findMany(
       where,
       limit,
       (page - 1) * limit,
+      orderBy,
     );
     const totalRides = await this.rideRepository.count(where);
 
     return {
       data: [...rides],
-      total: totalRides,
+      totalPages: Math.ceil(totalRides / limit),
       page,
       limit,
     };
@@ -71,7 +119,16 @@ export class RideService {
       throw new NotFoundException('Ride with such id not found');
     }
 
-    return ride;
+    return {
+      ...ride,
+      rideExtraOptions: ride.rideExtraOptions.map(
+        (option) => option.extraOption,
+      ),
+    };
+  }
+
+  public async count(where: Prisma.RideWhereInput) {
+    return this.rideRepository.count({ ...where });
   }
 
   private async validateRelations(
@@ -129,10 +186,19 @@ export class RideService {
 
     await this.validateRelations({ ...dto });
 
+    if (data.scheduledAt && new Date(data.scheduledAt).getTime() < Date.now()) {
+      throw new BadRequestException('Ride cannot be scheduled in the past');
+    }
+
     return this.prisma.$transaction(async (tx) => {
       const ride = await this.rideRepository.create(
         {
           ...data,
+          status: data.driverId
+            ? data.scheduledAt
+              ? RideStatus.UPCOMING
+              : RideStatus.IN_PROGRESS
+            : RideStatus.PENDING,
           locations: {
             create: [...locations],
           },
@@ -151,6 +217,17 @@ export class RideService {
   public async updateById(id: string, dto: UpdateRideDto) {
     const { locations, rideExtraOptionIds, ...data } = dto;
 
+    const ride = await this.findById(id);
+
+    if (
+      ride.status === RideStatus.COMPLETED ||
+      ride.status === RideStatus.CANCELLED
+    ) {
+      throw new BadRequestException(
+        'Cannot update completed or cancelled rides',
+      );
+    }
+
     await this.validateRelations({ ...dto });
 
     return this.prisma.$transaction(async (tx) => {
@@ -160,6 +237,11 @@ export class RideService {
         },
         {
           ...data,
+          status: data.driverId
+            ? data.scheduledAt
+              ? RideStatus.UPCOMING
+              : RideStatus.IN_PROGRESS
+            : RideStatus.PENDING,
           ...(locations
             ? {
                 locations: {
@@ -182,5 +264,46 @@ export class RideService {
 
   public async deleteById(id: string) {
     return this.rideRepository.deleteOne({ id });
+  }
+
+  public async getGeneralStats() {
+    const rideCount = await this.count({});
+    const clientCount = await this.clientService.count();
+    const driverCount = await this.driverService.count();
+
+    return {
+      rideCount,
+      clientCount,
+      driverCount,
+    };
+  }
+
+  public async getRidesByPaymentTypeStats() {
+    const cashCount = await this.count({ paymentType: PaymentType.CASH });
+    const cardCount = await this.count({ paymentType: PaymentType.CARD });
+    const cryptoCount = await this.count({ paymentType: PaymentType.CRYPTO });
+
+    return {
+      cashCount,
+      cardCount,
+      cryptoCount,
+    };
+  }
+
+  public async getIncomeByRideClassStats() {
+    const incomes = await this.prisma.ride.groupBy({
+      by: ['rideClassId'],
+      _sum: {
+        totalPrice: true,
+      },
+    });
+
+    const rideClasses = await this.rideClassService.findMany();
+
+    return incomes.map((income) => ({
+      totalIncome: income._sum.totalPrice,
+      rideClass: rideClasses.data.find((rc) => rc.id === income.rideClassId)
+        ?.name,
+    }));
   }
 }

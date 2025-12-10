@@ -3,18 +3,13 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  Length,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateUserDto {
   @IsNotEmpty()
   @IsEmail()
   email: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @Length(6, 128)
-  password: string;
 
   @IsNotEmpty()
   @IsString()
@@ -31,4 +26,8 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   phoneNumber?: string;
+
+  @IsOptional()
+  @IsUUID()
+  profileImageId?: string;
 }

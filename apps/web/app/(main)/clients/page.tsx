@@ -25,114 +25,195 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from '@/components/ui/pagination';
-
-type Client = { id: string; name: string; email: string };
-
-function makeClients(count = 35) {
-  return Array.from({ length: count }).map((_, i) => ({
-    id: String(2000 + i),
-    name: `Client ${i + 1}`,
-    email: `client${i + 1}@example.com`,
-  })) as Client[];
-}
+import { Input } from '@/components/ui/input';
+import { format } from 'date-fns';
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
+import { FilterDto, SortingDto } from '@/types';
+import { ClientResponse } from '@/types/client';
+import { useClient } from '@/hooks/use-client';
+import { ClientTableRow } from './components/ClientTableRow';
+import { ClientProfileDialog } from './components/ClientProfileDialog';
+import { ClientActionDialog } from './components/ClientActionDialog';
+import { useI18n } from '@/lib/i18n';
 
 export default function ClientsPage() {
-  const data = useMemo(() => makeClients(35), []);
-  const [page, setPage] = useState(1);
-  const pageSize = 10;
-  const pageCount = Math.ceil(data.length / pageSize);
-  const items = data.slice((page - 1) * pageSize, page * pageSize);
+  const [search, setSearch] = useState<string>('');
+  const [sort, setSort] = useState<SortingDto<ClientResponse>>({});
+  const [filter, setFilter] = useState<
+    FilterDto<ClientResponse>['filterParams']
+  >({});
+  const [page, setPage] = useState<number>(1);
 
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Client | null>(null);
+  const { clients } = useClient({
+    page,
+    filterParams: { ...filter },
+    ...sort,
+    search,
+  });
 
-  function openProfile(c: Client) {
-    setSelected(c);
-    setOpen(true);
-  }
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<ClientResponse | null>(
+    null,
+  );
+
+  const { t } = useI18n();
+
+  const tableHeader: {
+    key: keyof ClientResponse;
+    label: string;
+  }[] = useMemo(
+    () => [
+      {
+        key: 'firstName',
+        label: t('clients.table.name', 'Name'),
+      },
+      {
+        key: 'phoneNumber',
+        label: t('clients.table.phone', 'Phone'),
+      },
+      {
+        key: 'createdAt',
+        label: t('clients.table.date', 'Date'),
+      },
+      {
+        key: 'totalRides',
+        label: t('clients.table.totalRides', 'Total Rides'),
+      },
+    ],
+    [t],
+  );
+
+  const displayedPages = useMemo(() => {
+    if (!clients?.totalPages) return [];
+    if (page === 0)
+      return [1, 2, 3].filter((value) => value <= clients.totalPages);
+    if (page === clients?.totalPages)
+      return [page - 2, page - 1, page].filter((value) => value > 0);
+    return [page - 1, page, page + 1].filter(
+      (value) => value > 0 && value <= clients.totalPages,
+    );
+  }, [page, clients]);
 
   return (
-    <div className="w-full bg-zinc-50">
-      <main className="p-6">
-        <h1 className="text-2xl font-semibold mb-4">Clients</h1>
-
+    <div className="w-full">
+      <main>
+        <h1 className="text-2xl font-semibold mb-4">
+          {t('clients.title', 'Clients')}
+        </h1>
+        <div className="flex gap-2 mb-4">
+          <Input
+            value={search}
+            onChange={(e) => setSearch((e.target as HTMLInputElement).value)}
+            placeholder={t('placeholder.search', 'Search')}
+            className="w-[300px]"
+          />
+          <Button
+            onClick={() => {
+              setSelectedClient(null);
+              setIsDialogOpen(true);
+            }}
+            className="h-9"
+          >
+            {t('clients.add', 'Add Client')}
+          </Button>
+        </div>
         <div className="rounded-md bg-white p-4 shadow">
           <Table>
             <TableHeader>
               <tr>
-                <TableHead>ID</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Actions</TableHead>
+                {tableHeader.map(({ key, label }, index) => (
+                  <TableHead
+                    key={index}
+                    onClick={() =>
+                      setSort((prev) => ({
+                        sortBy: key,
+                        sortOrder:
+                          prev.sortBy === key
+                            ? prev.sortOrder === 'asc'
+                              ? 'desc'
+                              : 'asc'
+                            : 'asc',
+                      }))
+                    }
+                    className="cursor-pointer"
+                  >
+                    <div className="flex gap-2 items-center">
+                      <p>{label}</p>
+                      {sort.sortBy === key &&
+                        (sort.sortOrder === 'asc' ? (
+                          <ChevronUpIcon size={18} />
+                        ) : (
+                          sort.sortOrder === 'desc' && (
+                            <ChevronDownIcon size={18} />
+                          )
+                        ))}
+                    </div>
+                  </TableHead>
+                ))}
+                <TableHead className="w-[150px]">
+                  {t('table.actions', 'Actions')}
+                </TableHead>
               </tr>
             </TableHeader>
             <TableBody>
-              {items.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell>{c.id}</TableCell>
-                  <TableCell>{c.name}</TableCell>
-                  <TableCell>{c.email}</TableCell>
-                  <TableCell>
-                    <Button size="sm" onClick={() => openProfile(c)}>
-                      Profile
-                    </Button>
-                  </TableCell>
-                </TableRow>
+              {clients?.data.map((client, index) => (
+                <ClientTableRow
+                  key={index}
+                  client={client}
+                  onEdit={() => {
+                    setSelectedClient(client);
+                    setIsDialogOpen(true);
+                  }}
+                  onOpenProfile={() => {
+                    setSelectedClient(client);
+                    setIsProfileDialogOpen(true);
+                  }}
+                />
               ))}
             </TableBody>
           </Table>
-
           <Pagination className="mt-4">
             <PaginationContent>
               <PaginationItem>
                 <PaginationPrevious
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                />
+                >
+                  {t('pagination.prev', 'Previous')}
+                </PaginationPrevious>
               </PaginationItem>
-              {Array.from({ length: pageCount }).map((_, i) => (
-                <PaginationItem key={i}>
+              {displayedPages.map((value) => (
+                <PaginationItem key={value}>
                   <PaginationLink
-                    isActive={page === i + 1}
-                    onClick={() => setPage(i + 1)}
+                    isActive={page === value}
+                    onClick={() => setPage(value)}
                   >
-                    {i + 1}
+                    {value}
                   </PaginationLink>
                 </PaginationItem>
               ))}
               <PaginationItem>
                 <PaginationNext
-                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                />
+                  onClick={() =>
+                    setPage((p) => Math.min(clients?.totalPages || 0, p + 1))
+                  }
+                >
+                  {t('pagination.next', 'Next')}
+                </PaginationNext>
               </PaginationItem>
             </PaginationContent>
           </Pagination>
         </div>
-
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent>
-            <DialogTitle>Client profile</DialogTitle>
-            <DialogDescription>
-              {selected ? (
-                <div className="mt-2">
-                  <p>
-                    <strong>ID:</strong> {selected.id}
-                  </p>
-                  <p>
-                    <strong>Name:</strong> {selected.name}
-                  </p>
-                  <p>
-                    <strong>Email:</strong> {selected.email}
-                  </p>
-                </div>
-              ) : (
-                <p>No client selected</p>
-              )}
-            </DialogDescription>
-            <DialogFooter>
-              <Button onClick={() => setOpen(false)}>Close</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <ClientProfileDialog
+          isOpen={isProfileDialogOpen}
+          onOpenChange={setIsProfileDialogOpen}
+          client={selectedClient}
+        />
+        <ClientActionDialog
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          client={selectedClient}
+        />
       </main>
     </div>
   );
