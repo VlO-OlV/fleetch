@@ -35,99 +35,79 @@ import {
 } from '@/components/ui/pagination';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-
-type Order = {
-  id: string;
-  clientName: string;
-  driverName: string;
-  operatorName: string;
-  status: 'Completed' | 'In progress' | 'Pending' | 'Cancelled';
-  paymentType: 'Cash' | 'Card' | 'Crypto';
-  totalPrice: number;
-  rideClass: 'Economy' | 'Business' | 'Vip';
-};
-
-function makeOrders(count = 50) {
-  const statuses: Order['status'][] = [
-    'Completed',
-    'In progress',
-    'Pending',
-    'Cancelled',
-  ];
-  const payments: Order['paymentType'][] = ['Cash', 'Card', 'Crypto'];
-  const classes: Order['rideClass'][] = ['Economy', 'Business', 'Vip'];
-  return Array.from({ length: count }).map((_, i) => ({
-    id: String(1000 + i),
-    clientName: `Client ${i + 1}`,
-    driverName: `Driver ${(i % 27) + 1}`,
-    operatorName: `Operator ${(i % 5) + 1}`,
-    status: statuses[i % statuses.length],
-    paymentType: payments[i % payments.length],
-    totalPrice: Number(200.45),
-    rideClass: classes[i % classes.length],
-  })) as Order[];
-}
+import { FilterDto, SortingDto } from '@/types';
+import { RideResponse } from '@/types/ride';
+import { useRide } from '@/hooks/use-ride';
+import { PaymentTypeToDetailsMap, RideStatusToDetailsMap } from '@/lib/consts';
+import { useRideClass } from '@/hooks/use-ride-class';
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
+import { OrderTableRow } from './components/OrderTableRow';
 
 export default function OrdersPage() {
   const router = useRouter();
 
-  const [search, setSearch] = useState('');
-  const [sortKey, setSortKey] = useState<
-    | 'id'
-    | 'clientName'
-    | 'driverName'
-    | 'operatorName'
-    | 'status'
-    | 'paymentType'
-    | 'totalPrice'
-    | 'rideClass'
-  >('id');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [paymentFilter, setPaymentFilter] = useState('');
-  const [rideClassFilter, setRideClassFilter] = useState('');
-  const [data] = useState(() => makeOrders(53));
-  const [page, setPage] = useState(1);
-  const pageSize = 10;
-  const pageCount = Math.ceil(data.length / pageSize);
+  const [search, setSearch] = useState<string>('');
+  const [sort, setSort] = useState<SortingDto<RideResponse>>({});
+  const [filter, setFilter] = useState<FilterDto<RideResponse>['filterParams']>(
+    {},
+  );
+  const [page, setPage] = useState<number>(1);
 
-  // Search, filter, sort
-  const filtered = useMemo(() => {
-    let arr = [...data];
-    if (search)
-      arr = arr.filter(
-        (o) =>
-          o.clientName.toLowerCase().includes(search.toLowerCase()) ||
-          o.driverName.toLowerCase().includes(search.toLowerCase()) ||
-          o.operatorName.toLowerCase().includes(search.toLowerCase()) ||
-          o.status.toLowerCase().includes(search.toLowerCase()),
-      );
-    if (statusFilter) arr = arr.filter((o) => o.status === statusFilter);
-    if (paymentFilter) arr = arr.filter((o) => o.paymentType === paymentFilter);
-    if (rideClassFilter)
-      arr = arr.filter((o) => o.rideClass === rideClassFilter);
-    arr.sort((a, b) => {
-      const vA = a[sortKey] ?? '';
-      const vB = b[sortKey] ?? '';
-      if (typeof vA === 'number' && typeof vB === 'number') {
-        return sortDir === 'asc' ? vA - vB : vB - vA;
-      }
-      if (vA < vB) return sortDir === 'asc' ? -1 : 1;
-      if (vA > vB) return sortDir === 'asc' ? 1 : -1;
-      return 0;
-    });
-    return arr;
-  }, [
-    data,
+  const { rides } = useRide({
+    page,
+    filterParams: { ...filter },
+    ...sort,
     search,
-    statusFilter,
-    paymentFilter,
-    rideClassFilter,
-    sortKey,
-    sortDir,
-  ]);
+  });
+  const { rideClasses } = useRideClass({});
 
-  const pageItems = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const tableHeader: {
+    key: keyof RideResponse;
+    label: string;
+  }[] = useMemo(
+    () => [
+      {
+        key: 'clientId',
+        label: 'Client',
+      },
+      {
+        key: 'driverId',
+        label: 'Driver',
+      },
+      {
+        key: 'operatorId',
+        label: 'Operator',
+      },
+      {
+        key: 'status',
+        label: 'Status',
+      },
+      {
+        key: 'paymentType',
+        label: 'Payment',
+      },
+      {
+        key: 'totalPrice',
+        label: 'Total Price',
+      },
+      {
+        key: 'rideClassId',
+        label: 'Ride Class',
+      },
+    ],
+    [],
+  );
+
+  const displayedPages = useMemo(() => {
+    if (!rides?.totalPages) return [];
+    if (page === 0)
+      return [1, 2, 3].filter((value) => value <= rides.totalPages);
+    if (page === rides?.totalPages)
+      return [page - 2, page - 1, page].filter((value) => value > 0);
+    return [page - 1, page, page + 1].filter(
+      (value) => value > 0 && value <= rides.totalPages,
+    );
+  }, [page, rides]);
 
   return (
     <div className="w-full">
@@ -140,38 +120,21 @@ export default function OrdersPage() {
             placeholder="Search"
             className="w-[320px]"
           />
-
           <Select
-            onValueChange={(v) => setStatusFilter(v)}
-            value={statusFilter}
+            onValueChange={(value) =>
+              setFilter((prev) => ({ ...prev, status: value }))
+            }
+            value={filter?.status}
           >
             <SelectTrigger className="w-40">
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {Array.from(new Set(data.map((o) => o.status))).map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-
-          <Select
-            onValueChange={(v) => setPaymentFilter(v)}
-            value={paymentFilter}
-          >
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="All payments" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {Array.from(new Set(data.map((o) => o.paymentType))).map(
-                  (p) => (
-                    <SelectItem key={p} value={p}>
-                      {p}
+                {Object.entries(RideStatusToDetailsMap).map(
+                  ([status, { label }]) => (
+                    <SelectItem key={status} value={status}>
+                      {label}
                     </SelectItem>
                   ),
                 )}
@@ -180,17 +143,41 @@ export default function OrdersPage() {
           </Select>
 
           <Select
-            onValueChange={(v) => setRideClassFilter(v)}
-            value={rideClassFilter}
+            onValueChange={(value) =>
+              setFilter((prev) => ({ ...prev, paymentType: value }))
+            }
+            value={filter?.paymentType}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="All payments" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {Object.entries(PaymentTypeToDetailsMap).map(
+                  ([status, { label }]) => (
+                    <SelectItem key={status} value={status}>
+                      {label}
+                    </SelectItem>
+                  ),
+                )}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+
+          <Select
+            onValueChange={(value) =>
+              setFilter((prev) => ({ ...prev, rideClass: value }))
+            }
+            value={filter?.rideClass}
           >
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="All classes" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {Array.from(new Set(data.map((o) => o.rideClass))).map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
+                {rideClasses?.data.map((rideClass) => (
+                  <SelectItem key={rideClass.id} value={rideClass.id}>
+                    {rideClass.name}
                   </SelectItem>
                 ))}
               </SelectGroup>
@@ -204,123 +191,41 @@ export default function OrdersPage() {
           <Table>
             <TableHeader>
               <tr>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('clientName');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Client
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('driverName');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Driver
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('operatorName');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Operator
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('status');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Status
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('paymentType');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Payment
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('totalPrice');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Total Price
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('rideClass');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Ride Class
-                </TableHead>
+                {tableHeader.map(({ key, label }, index) => (
+                  <TableHead
+                    key={index}
+                    onClick={() =>
+                      setSort((prev) => ({
+                        sortBy: key,
+                        sortOrder:
+                          prev.sortBy === key
+                            ? prev.sortOrder === 'asc'
+                              ? 'desc'
+                              : 'asc'
+                            : 'asc',
+                      }))
+                    }
+                    className="cursor-pointer"
+                  >
+                    <div className="flex gap-2 items-center">
+                      <p>{label}</p>
+                      {sort.sortBy === key &&
+                        (sort.sortOrder === 'asc' ? (
+                          <ChevronUpIcon size={18} />
+                        ) : (
+                          sort.sortOrder === 'desc' && (
+                            <ChevronDownIcon size={18} />
+                          )
+                        ))}
+                    </div>
+                  </TableHead>
+                ))}
                 <TableHead>Actions</TableHead>
               </tr>
             </TableHeader>
             <TableBody>
-              {pageItems.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.clientName}</TableCell>
-                  <TableCell>{row.driverName}</TableCell>
-                  <TableCell>{row.operatorName}</TableCell>
-                  <TableCell>
-                    <StatusBadge
-                      variant={
-                        row.status === 'Completed'
-                          ? 'success'
-                          : row.status === 'Cancelled'
-                            ? 'danger'
-                            : 'info'
-                      }
-                    >
-                      {row.status}
-                    </StatusBadge>
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge
-                      variant={
-                        row.paymentType === 'Cash'
-                          ? 'neutral'
-                          : row.paymentType === 'Card'
-                            ? 'info'
-                            : 'success'
-                      }
-                    >
-                      {row.paymentType}
-                    </StatusBadge>
-                  </TableCell>
-                  <TableCell>${row.totalPrice.toFixed(2)}</TableCell>
-                  <TableCell className="capitalize">{row.rideClass}</TableCell>
-                  <TableCell className="w-[150px]">
-                    <Button
-                      size="sm"
-                      onClick={() => router.push(`/orders/${row.id}`)}
-                    >
-                      Profile
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => router.push(`/orders/${row.id}/edit`)}
-                      className="ml-2"
-                    >
-                      Edit
-                    </Button>
-                  </TableCell>
-                </TableRow>
+              {rides?.data.map((ride, index) => (
+                <OrderTableRow key={index} ride={ride} />
               ))}
             </TableBody>
           </Table>
@@ -331,19 +236,21 @@ export default function OrdersPage() {
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                 />
               </PaginationItem>
-              {Array.from({ length: pageCount }).map((_, i) => (
-                <PaginationItem key={i}>
+              {displayedPages.map((value) => (
+                <PaginationItem key={value}>
                   <PaginationLink
-                    isActive={page === i + 1}
-                    onClick={() => setPage(i + 1)}
+                    isActive={page === value}
+                    onClick={() => setPage(value)}
                   >
-                    {i + 1}
+                    {value}
                   </PaginationLink>
                 </PaginationItem>
               ))}
               <PaginationItem>
                 <PaginationNext
-                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                  onClick={() =>
+                    setPage((p) => Math.min(rides?.totalPages || 0, p + 1))
+                  }
                 />
               </PaginationItem>
             </PaginationContent>

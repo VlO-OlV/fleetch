@@ -5,23 +5,35 @@ import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class ClientRepository {
+  private readonly include: Prisma.ClientInclude = {
+    _count: {
+      select: { rides: true },
+    },
+  };
+
   public constructor(private prisma: PrismaService) {}
 
   public async findOne(
     where: Prisma.ClientWhereInput,
     tx?: Prisma.TransactionClient,
   ) {
-    return (tx ?? this.prisma).client.findFirst({ where });
+    return (tx ?? this.prisma).client.findFirst({
+      where,
+      include: this.include,
+    });
   }
 
   public async findMany(
     where: Prisma.ClientWhereInput,
     take: number = 100,
     skip: number = 0,
+    orderBy?: Prisma.ClientOrderByWithRelationInput,
     tx?: Prisma.TransactionClient,
   ) {
     return (tx ?? this.prisma).client.findMany({
       where,
+      include: this.include,
+      orderBy,
       take,
       skip,
     });

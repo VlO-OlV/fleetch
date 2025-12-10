@@ -1,6 +1,13 @@
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
-import { PaymentType, RideStatus } from 'generated/prisma';
+import {
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+} from 'class-validator';
+import { PaymentType, Ride, RideStatus } from 'generated/prisma';
 
 export class RideQueryDto {
   @IsOptional()
@@ -12,12 +19,8 @@ export class RideQueryDto {
   paymentType?: PaymentType;
 
   @IsOptional()
-  @IsString()
-  clientId?: string;
-
-  @IsOptional()
-  @IsString()
-  driverId?: string;
+  @IsUUID()
+  rideClassId?: string;
 
   @IsOptional()
   @Type(() => Number)
@@ -30,4 +33,16 @@ export class RideQueryDto {
   @IsInt()
   @Min(1)
   limit?: number;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsString()
+  sortBy?: keyof Ride;
+
+  @IsOptional()
+  @IsEnum(['asc', 'desc'])
+  sortOrder?: 'asc' | 'desc';
 }

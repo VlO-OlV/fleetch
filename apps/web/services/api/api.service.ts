@@ -87,7 +87,7 @@ class ApiService {
     params: Record<string, string | number | boolean | null | undefined>,
   ): string {
     return Object.entries(params)
-      .map(([key, value]) => `${key}=${value}`)
+      .map(([key, value]) => (!!value ? `${key}=${value}` : ''))
       .join('&');
   }
 

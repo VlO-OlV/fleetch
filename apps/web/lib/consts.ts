@@ -1,5 +1,6 @@
 import { DriverStatus } from '@/types/driver';
-import { UserRole } from '@/types/user';
+import { LocationType, PaymentType, RideStatus } from '@/types/ride';
+import { UserRole, UserState } from '@/types/user';
 
 export enum ApiEndpoint {
   LOGIN = '/auth/login',
@@ -15,6 +16,7 @@ export enum ApiEndpoint {
   USERS = '/users',
   CLIENTS = '/clients',
   RIDES = '/rides',
+  RIDES_STATS = '/rides/stats',
   RIDE_CLASSES = '/ride-classes',
   EXTRA_OPTIONS = '/extra-options',
 }
@@ -69,6 +71,7 @@ export enum QueryKey {
   DRIVERS = 'DRIVERS',
   CLIENTS = 'CLIENTS',
   RIDES = 'RIDES',
+  RIDES_STATS = 'RIDES_STATS',
   USERS = 'USERS',
   RIDE_CLASSES = 'RIDE_CLASSES',
   EXTRA_OPTIONS = 'EXTRA_OPTIONS',
@@ -104,4 +107,83 @@ export const DriverStatusToDetailsMap: Record<
     color: '#155dfc',
     bgColor: '#dbeafe',
   },
+};
+
+export const UserStateToDetailsMap: Record<
+  UserState,
+  { label: string; color: string; bgColor: string }
+> = {
+  [UserState.PENDING]: {
+    label: 'Pending',
+    color: '#d97706',
+    bgColor: '#ffedd5',
+  },
+  [UserState.VERIFIED]: {
+    label: 'Verified',
+    color: '#16a34a',
+    bgColor: '#dcfce7',
+  },
+};
+
+export const RideStatusToDetailsMap: Record<
+  RideStatus,
+  { label: string; color: string; bgColor: string }
+> = {
+  [RideStatus.PENDING]: {
+    label: 'Pending',
+    color: '#d97706',
+    bgColor: '#ffedd5',
+  },
+  [RideStatus.IN_PROGRESS]: {
+    label: 'In Progress',
+    color: '#155dfc',
+    bgColor: '#dbeafe',
+  },
+  [RideStatus.COMPLETED]: {
+    label: 'Completed',
+    color: '#16a34a',
+    bgColor: '#dcfce7',
+  },
+  [RideStatus.UPCOMING]: {
+    label: 'Upcoming',
+    color: '#0ea5e9',
+    bgColor: '#d0f0fd',
+  },
+  [RideStatus.CANCELLED]: {
+    label: 'Cancelled',
+    color: '#dc2626',
+    bgColor: '#fee2e2',
+  },
+  [RideStatus.CANCELLED_BY_DRIVER]: {
+    label: 'Cancelled by Driver',
+    color: '#dc2626',
+    bgColor: '#fee2e2',
+  },
+};
+
+export const PaymentTypeToDetailsMap: Record<
+  PaymentType,
+  { label: string; color: string; bgColor: string }
+> = {
+  [PaymentType.CASH]: {
+    label: 'Cash',
+    color: '#4b5563',
+    bgColor: '#f3f4f6',
+  },
+  [PaymentType.CARD]: {
+    label: 'Card',
+    color: '#0ea5e9',
+    bgColor: '#d0f0fd',
+  },
+  [PaymentType.CRYPTO]: {
+    label: 'Crypto',
+    color: '#a855f7',
+    bgColor: '#f3e8ff',
+  },
+};
+
+export const LocationTypeToLabelMap: Record<LocationType, string> = {
+  [LocationType.START]: 'Start',
+  [LocationType.INTERMEDIATE]: 'Intermediate',
+  [LocationType.END]: 'End',
 };

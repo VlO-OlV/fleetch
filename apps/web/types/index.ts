@@ -4,13 +4,12 @@ export interface PaginationDto {
 }
 
 export interface SortingDto<T> {
-  sortingParams?: Partial<Record<keyof T, 'asc' | 'desc'>>;
+  sortBy?: keyof T;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface FilterDto<T> {
-  filterParams?: Partial<
-    Record<keyof T, string | number | boolean | null | undefined>
-  >;
+  filterParams?: Partial<Record<keyof T, string | undefined>>;
 }
 
 export interface FindManyDto<T>

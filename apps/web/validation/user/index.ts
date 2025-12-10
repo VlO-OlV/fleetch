@@ -1,7 +1,7 @@
 import { MAX_FILE_SIZE } from '@/lib/consts';
 import z from 'zod';
 
-export const createUserSchema = z.object({
+export const userSchema = z.object({
   firstName: z
     .string()
     .min(1, 'First name is required')
@@ -20,13 +20,17 @@ export const createUserSchema = z.object({
     }),
 });
 
+export const createUserSchema = userSchema.partial().extend({
+  email: z.email('Invalid email address'),
+});
+
 export type CreateUserDto = z.infer<typeof createUserSchema>;
 
-export const updateUserSchema = createUserSchema.partial();
+export const updateUserSchema = userSchema.partial();
 
 export type UpdateUserDto = z.infer<typeof updateUserSchema>;
 
-export const updateProfileSchema = createUserSchema.partial().extend({
+export const updateProfileSchema = userSchema.partial().extend({
   profileImage: z
     .instanceof(File)
     .refine((file) => file.size <= MAX_FILE_SIZE, 'Max file size is 5MB')

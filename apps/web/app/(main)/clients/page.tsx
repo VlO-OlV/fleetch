@@ -25,129 +25,72 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from '@/components/ui/pagination';
-import { ClientEditDialogForm } from './ClientEditDialogForm';
 import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
-
-type Client = {
-  id: string;
-  totalRides: number;
-  name: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  middleName?: string;
-  phone?: string;
-  createdAt: string;
-};
-
-function makeClients(count = 35) {
-  return Array.from({ length: count }).map((_, i) => ({
-    id: String(2000 + i),
-    name: `Client ${i + 1}`,
-    email: `client${i + 1}@example.com`,
-    createdAt: new Date().toISOString(),
-    firstName: `First${i + 1}`,
-    lastName: `Last${i + 1}`,
-    middleName: '',
-    phone: `+1234567890${i}`,
-    totalRides: 10 + i,
-  })) as Client[];
-}
+import { FilterDto, SortingDto } from '@/types';
+import { ClientResponse } from '@/types/client';
+import { useClient } from '@/hooks/use-client';
+import { ClientTableRow } from './components/ClientTableRow';
+import { ClientProfileDialog } from './components/ClientProfileDialog';
+import { ClientActionDialog } from './components/ClientActionDialog';
 
 export default function ClientsPage() {
-  const [search, setSearch] = useState('');
-  const [sortKey, setSortKey] = useState<
-    'totalRides' | 'name' | 'email' | 'phone'
-  >('totalRides');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
-  const [filter, setFilter] = useState('');
-  const [data, setData] = useState(() => makeClients(35));
-  const [page, setPage] = useState(1);
-  const pageSize = 10;
-  const pageCount = Math.ceil(data.length / pageSize);
+  const [search, setSearch] = useState<string>('');
+  const [sort, setSort] = useState<SortingDto<ClientResponse>>({});
+  const [filter, setFilter] = useState<
+    FilterDto<ClientResponse>['filterParams']
+  >({});
+  const [page, setPage] = useState<number>(1);
 
-  // Search, filter, sort
-  const filtered = useMemo(() => {
-    let arr = [...data];
-    if (search)
-      arr = arr.filter(
-        (c) =>
-          c.name.toLowerCase().includes(search.toLowerCase()) ||
-          c.email.toLowerCase().includes(search.toLowerCase()),
-      );
-    if (filter) arr = arr.filter((c) => c.email.includes(filter));
-    arr.sort((a, b) => {
-      const vA = a[sortKey] ?? '';
-      const vB = b[sortKey] ?? '';
-      if (vA < vB) return sortDir === 'asc' ? -1 : 1;
-      if (vA > vB) return sortDir === 'asc' ? 1 : -1;
-      return 0;
-    });
-    return arr;
-  }, [data, search, filter, sortKey, sortDir]);
+  const { clients } = useClient({
+    page,
+    filterParams: { ...filter },
+    ...sort,
+    search,
+  });
 
-  const items = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<ClientResponse | null>(
+    null,
+  );
 
-  // Dialog state
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Client | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editClient, setEditClient] = useState<Client | null>(null);
+  const tableHeader: {
+    key: keyof ClientResponse;
+    label: string;
+  }[] = useMemo(
+    () => [
+      {
+        key: 'firstName',
+        label: 'Name',
+      },
+      {
+        key: 'phoneNumber',
+        label: 'Phone',
+      },
+      {
+        key: 'createdAt',
+        label: 'Date',
+      },
+      {
+        key: 'totalRides',
+        label: 'Total Rides',
+      },
+    ],
+    [],
+  );
 
-  function openProfile(c: Client) {
-    setSelected(c);
-    setOpen(true);
-  }
-
-  function openEditDialog(client?: Client) {
-    setEditClient(client || null);
-    setEditDialogOpen(true);
-  }
-
-  function handleSaveClient(values: {
-    firstName: string;
-    lastName: string;
-    phone: string;
-    middleName?: string | undefined;
-  }) {
-    if (editClient) {
-      // Edit
-      setData((prev) =>
-        prev.map((c) =>
-          c.id === editClient.id
-            ? {
-                ...c,
-                ...values,
-                name: `${values.firstName} ${values.lastName}`,
-              }
-            : c,
-        ),
-      );
-    } else {
-      // Create
-      const newId = String(2000 + data.length);
-      setData((prev) => [
-        {
-          id: newId,
-          totalRides: 35,
-          name: `${values.firstName} ${values.lastName}`,
-          email: `${values.firstName.toLowerCase()}${values.lastName.toLowerCase()}@example.com`,
-          createdAt: new Date().toISOString(),
-          ...values,
-        },
-        ...prev,
-      ]);
-    }
-    setEditDialogOpen(false);
-  }
-
-  function handleDeleteClient(id: string) {
-    if (!confirm('Delete client?')) return;
-    setData((prev) => prev.filter((c) => c.id !== id));
-    setOpen(false);
-  }
+  const displayedPages = useMemo(() => {
+    if (!clients?.totalPages) return [];
+    if (page === 0)
+      return [1, 2, 3].filter((value) => value <= clients.totalPages);
+    if (page === clients?.totalPages)
+      return [page - 2, page - 1, page].filter((value) => value > 0);
+    return [page - 1, page, page + 1].filter(
+      (value) => value > 0 && value <= clients.totalPages,
+    );
+  }, [page, clients]);
 
   return (
     <div className="w-full">
@@ -160,7 +103,13 @@ export default function ClientsPage() {
             placeholder="Search"
             className="w-[300px]"
           />
-          <Button onClick={() => openEditDialog()} className="h-9">
+          <Button
+            onClick={() => {
+              setSelectedClient(null);
+              setIsDialogOpen(true);
+            }}
+            className="h-9"
+          >
             Add Client
           </Button>
         </div>
@@ -168,67 +117,52 @@ export default function ClientsPage() {
           <Table>
             <TableHeader>
               <tr>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('name');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="flex gap-2 items-center cursor-pointer"
-                >
-                  Name{' '}
-                  {sortDir === 'asc' ? (
-                    <ChevronUpIcon size={18} />
-                  ) : (
-                    <ChevronDownIcon size={18} />
-                  )}
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('phone');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Phone
-                </TableHead>
-                <TableHead onClick={() => {}} className="cursor-pointer">
-                  Date
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('totalRides');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer w-[150px]"
-                >
-                  Total rides
-                </TableHead>
+                {tableHeader.map(({ key, label }, index) => (
+                  <TableHead
+                    key={index}
+                    onClick={() =>
+                      setSort((prev) => ({
+                        sortBy: key,
+                        sortOrder:
+                          prev.sortBy === key
+                            ? prev.sortOrder === 'asc'
+                              ? 'desc'
+                              : 'asc'
+                            : 'asc',
+                      }))
+                    }
+                    className="cursor-pointer"
+                  >
+                    <div className="flex gap-2 items-center">
+                      <p>{label}</p>
+                      {sort.sortBy === key &&
+                        (sort.sortOrder === 'asc' ? (
+                          <ChevronUpIcon size={18} />
+                        ) : (
+                          sort.sortOrder === 'desc' && (
+                            <ChevronDownIcon size={18} />
+                          )
+                        ))}
+                    </div>
+                  </TableHead>
+                ))}
                 <TableHead className="w-[150px]">Actions</TableHead>
               </tr>
             </TableHeader>
             <TableBody>
-              {items.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell>{c.name}</TableCell>
-                  <TableCell>{c.phone || '-'}</TableCell>
-                  <TableCell>
-                    {format(new Date(c.createdAt), 'dd/MM/yyyy')}
-                  </TableCell>
-                  <TableCell className="w-[150px]">{c.totalRides}</TableCell>
-                  <TableCell className="w-[150px]">
-                    <Button size="sm" onClick={() => openProfile(c)}>
-                      Profile
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openEditDialog(c)}
-                      className="ml-2"
-                    >
-                      Edit
-                    </Button>
-                  </TableCell>
-                </TableRow>
+              {clients?.data.map((client, index) => (
+                <ClientTableRow
+                  key={index}
+                  client={client}
+                  onEdit={() => {
+                    setSelectedClient(client);
+                    setIsDialogOpen(true);
+                  }}
+                  onOpenProfile={() => {
+                    setSelectedClient(client);
+                    setIsProfileDialogOpen(true);
+                  }}
+                />
               ))}
             </TableBody>
           </Table>
@@ -239,74 +173,36 @@ export default function ClientsPage() {
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                 />
               </PaginationItem>
-              {Array.from({ length: pageCount }).map((_, i) => (
-                <PaginationItem key={i}>
+              {displayedPages.map((value) => (
+                <PaginationItem key={value}>
                   <PaginationLink
-                    isActive={page === i + 1}
-                    onClick={() => setPage(i + 1)}
+                    isActive={page === value}
+                    onClick={() => setPage(value)}
                   >
-                    {i + 1}
+                    {value}
                   </PaginationLink>
                 </PaginationItem>
               ))}
               <PaginationItem>
                 <PaginationNext
-                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                  onClick={() =>
+                    setPage((p) => Math.min(clients?.totalPages || 0, p + 1))
+                  }
                 />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent>
-            <DialogTitle>Client profile</DialogTitle>
-            {selected ? (
-              <div className="mt-2">
-                <p>
-                  <strong>ID:</strong> {selected.id}
-                </p>
-                <p>
-                  <strong>Name:</strong> {selected.name}
-                </p>
-                <p>
-                  <strong>First Name:</strong> {selected.firstName}
-                </p>
-                <p>
-                  <strong>Last Name:</strong> {selected.lastName}
-                </p>
-                <p>
-                  <strong>Middle Name:</strong> {selected.middleName}
-                </p>
-                <p>
-                  <strong>Phone:</strong> {selected.phone}
-                </p>
-              </div>
-            ) : (
-              <p>No client selected</p>
-            )}
-            <DialogFooter>
-              <Button
-                variant="destructive"
-                onClick={() => selected && handleDeleteClient(selected.id)}
-              >
-                Delete
-              </Button>
-              <Button onClick={() => setOpen(false)}>Close</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent>
-            <DialogTitle>
-              {editClient ? 'Edit Client' : 'Add Client'}
-            </DialogTitle>
-            <ClientEditDialogForm
-              defaultValues={editClient || undefined}
-              onSubmit={handleSaveClient}
-              onCancel={() => setEditDialogOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
+        <ClientProfileDialog
+          isOpen={isProfileDialogOpen}
+          onOpenChange={setIsProfileDialogOpen}
+          client={selectedClient}
+        />
+        <ClientActionDialog
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          client={selectedClient}
+        />
       </main>
     </div>
   );

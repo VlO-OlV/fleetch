@@ -2,11 +2,13 @@ import { ApiEndpoint, MutationKey, QueryKey } from '@/lib/consts';
 import apiService from '@/services/api/api.service';
 import { ExtraOptionResponse } from '@/types/ride';
 import { CreateExtraOptionDto, UpdateExtraOptionDto } from '@/validation/ride';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
 
 export const useExtraOption = ({ id }: { id?: string }) => {
+  const queryClient = useQueryClient();
+
   const getExtraOptions = useCallback(async () => {
     const response = await apiService.get<{ data: ExtraOptionResponse[] }>(
       ApiEndpoint.EXTRA_OPTIONS,
@@ -31,6 +33,9 @@ export const useExtraOption = ({ id }: { id?: string }) => {
     mutationKey: [MutationKey.CREATE_EXTRA_OPTION],
     mutationFn: createExtraOption,
     onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.EXTRA_OPTIONS],
+      });
       toast.success('Extra option created');
     },
   });
@@ -50,21 +55,30 @@ export const useExtraOption = ({ id }: { id?: string }) => {
     mutationKey: [MutationKey.UPDATE_EXTRA_OPTION],
     mutationFn: updateExtraOption,
     onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.EXTRA_OPTIONS],
+      });
       toast.success('Extra option updated');
     },
   });
 
-  const deleteExtraOption = useCallback(async () => {
-    const response = await apiService.delete<void>(
-      ApiEndpoint.EXTRA_OPTIONS + `/${id}`,
-    );
-    return response.data;
-  }, [id]);
+  const deleteExtraOption = useCallback(
+    async (extraOptionId?: string) => {
+      const response = await apiService.delete<void>(
+        ApiEndpoint.EXTRA_OPTIONS + `/${extraOptionId || id}`,
+      );
+      return response.data;
+    },
+    [id],
+  );
 
   const deleteExtraOptionMutation = useMutation({
     mutationKey: [MutationKey.DELETE_EXTRA_OPTION],
     mutationFn: deleteExtraOption,
     onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.EXTRA_OPTIONS],
+      });
       toast.success('Extra option deleted');
     },
   });

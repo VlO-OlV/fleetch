@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from 'generated/prisma';
 
 import { ExtraOptionRepository } from '../../database/repositories/extra-option.repository';
@@ -37,6 +41,12 @@ export class ExtraOptionService {
   }
 
   public async create(dto: CreateExtraOptionDto) {
+    const optionsCount = await this.extraOptionRepository.count({});
+
+    if (optionsCount >= 20) {
+      throw new BadRequestException('Cannot create more than 20 extra options');
+    }
+
     return this.extraOptionRepository.create({ ...dto });
   }
 

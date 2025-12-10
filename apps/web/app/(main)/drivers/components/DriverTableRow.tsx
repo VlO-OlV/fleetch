@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { TableCell, TableRow } from '@/components/ui/table';
+import { useRideClass } from '@/hooks/use-ride-class';
 import { DriverStatusToDetailsMap } from '@/lib/consts';
 import { formatName } from '@/lib/utils';
 import { DriverResponse } from '@/types/driver';
@@ -26,8 +27,8 @@ export const DriverTableRow: FC<DriverTableRowProps> = ({
       <TableCell>
         {formatName(driver.firstName, driver.middleName, driver.lastName)}
       </TableCell>
-      <TableCell>{driver.phoneNumber}</TableCell>
-      <TableCell className="capitalize">{driver.rideClassId}</TableCell>
+      <TableCell>{driver.phoneNumber || '-'}</TableCell>
+      <TableCell className="capitalize">{driver.rideClass.name}</TableCell>
       <TableCell>
         <span
           className={`flex items-center px-2 py-0.5 rounded-full text-sm font-medium bg-[${driverStatusDetails.bgColor}] color-[${driverStatusDetails.color}] border-[${driverStatusDetails.color}]`}

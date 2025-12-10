@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { LocationType } from 'generated/prisma';
 
 export class CreateLocationDto {
@@ -9,6 +9,10 @@ export class CreateLocationDto {
   @IsNotEmpty()
   @IsNumber()
   longitude: number;
+
+  @IsNotEmpty()
+  @IsString()
+  address: string;
 
   @IsNotEmpty()
   @IsEnum(LocationType)

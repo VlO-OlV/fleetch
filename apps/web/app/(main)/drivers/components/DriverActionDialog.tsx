@@ -18,16 +18,12 @@ import {
   SelectGroup,
   SelectItem,
 } from '@/components/ui/select';
-import {
-  CreateDriverDto,
-  createDriverSchema,
-  UpdateDriverDto,
-  updateDriverSchema,
-} from '@/validation/driver';
+import { CreateDriverDto, createDriverSchema } from '@/validation/driver';
 import { DriverResponse } from '@/types/driver';
-import { FC } from 'react';
+import { FC, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useDriver } from '@/hooks/use-driver';
+import { useRideClass } from '@/hooks/use-ride-class';
 
 interface DriverActionDialogProps {
   isOpen: boolean;
@@ -40,22 +36,37 @@ const DriverDialogForm: FC<DriverActionDialogProps> = ({
   onOpenChange,
 }) => {
   const { createDriver, updateDriver } = useDriver({ id: driver?.id });
+  const { rideClasses } = useRideClass({});
 
-  const form = useForm<CreateDriverDto | UpdateDriverDto>({
-    resolver: zodResolver(driver ? updateDriverSchema : createDriverSchema),
-    defaultValues: { ...driver },
+  const defaultValues: CreateDriverDto = useMemo(
+    () => ({
+      firstName: driver?.firstName || '',
+      middleName: driver?.middleName || undefined,
+      lastName: driver?.lastName || '',
+      carNumber: driver?.carNumber || '',
+      rideClassId: driver?.rideClassId || '',
+      phoneNumber: driver?.phoneNumber || undefined,
+    }),
+    [driver?.id],
+  );
+
+  const form = useForm<CreateDriverDto>({
+    resolver: zodResolver(createDriverSchema),
+    defaultValues: { ...defaultValues },
   });
 
-  const onSubmit = (data: CreateDriverDto | UpdateDriverDto) => {
+  useEffect(() => form.reset({ ...defaultValues }), [defaultValues]);
+
+  const onSubmit = (data: CreateDriverDto) => {
     if (driver?.id) {
-      updateDriver({ ...data });
+      updateDriver({ ...data }, { onSuccess: () => onOpenChange(false) });
     } else {
-      createDriver({ ...data } as CreateDriverDto);
+      createDriver({ ...data }, { onSuccess: () => onOpenChange(false) });
     }
   };
 
   const onCancel = () => {
-    form.reset({ ...driver });
+    form.reset({ ...defaultValues });
     onOpenChange(false);
   };
 
@@ -70,8 +81,9 @@ const DriverDialogForm: FC<DriverActionDialogProps> = ({
               <FormItem>
                 <FormLabel>First name</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input placeholder="John" {...field} />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -82,8 +94,9 @@ const DriverDialogForm: FC<DriverActionDialogProps> = ({
               <FormItem>
                 <FormLabel>Middle name</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input placeholder="Johnson" {...field} />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -94,8 +107,9 @@ const DriverDialogForm: FC<DriverActionDialogProps> = ({
               <FormItem>
                 <FormLabel>Last name</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input placeholder="Doe" {...field} />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -128,9 +142,11 @@ const DriverDialogForm: FC<DriverActionDialogProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="economy">Economy</SelectItem>
-                      <SelectItem value="business">Business</SelectItem>
-                      <SelectItem value="vip">VIP</SelectItem>
+                      {rideClasses?.data.map((rideClass) => (
+                        <SelectItem key={rideClass.id} value={rideClass.id}>
+                          {rideClass.name}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>

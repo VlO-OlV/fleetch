@@ -5,22 +5,36 @@ import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class DriverRepository {
+  private readonly include: Prisma.DriverInclude = {
+    rideClass: true,
+  };
+
   public constructor(private prisma: PrismaService) {}
 
   public async findOne(
     where: Prisma.DriverWhereInput,
     tx?: Prisma.TransactionClient,
   ) {
-    return (tx ?? this.prisma).driver.findFirst({ where });
+    return (tx ?? this.prisma).driver.findFirst({
+      where,
+      include: this.include,
+    });
   }
 
   public async findMany(
     where: Prisma.DriverWhereInput,
     take: number = 100,
     skip: number = 0,
+    orderBy?: Prisma.DriverOrderByWithRelationInput,
     tx?: Prisma.TransactionClient,
   ) {
-    return (tx ?? this.prisma).driver.findMany({ where, take, skip });
+    return (tx ?? this.prisma).driver.findMany({
+      where,
+      include: this.include,
+      take,
+      skip,
+      orderBy,
+    });
   }
 
   public async count(

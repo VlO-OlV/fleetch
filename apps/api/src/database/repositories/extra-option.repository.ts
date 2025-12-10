@@ -21,6 +21,13 @@ export class ExtraOptionRepository {
     return (tx ?? this.prisma).extraOption.findMany({ where });
   }
 
+  public async count(
+    where: Prisma.ExtraOptionWhereInput,
+    tx?: Prisma.TransactionClient,
+  ) {
+    return (tx ?? this.prisma).extraOption.count({ where });
+  }
+
   public async create(
     data: Prisma.ExtraOptionUncheckedCreateInput,
     tx?: Prisma.TransactionClient,

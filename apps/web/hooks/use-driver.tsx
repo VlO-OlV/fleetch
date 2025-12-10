@@ -3,25 +3,29 @@ import apiService from '@/services/api/api.service';
 import { FindManyDto, PaginationDto, PaginationResponse } from '@/types';
 import { DriverResponse } from '@/types/driver';
 import { CreateDriverDto, UpdateDriverDto } from '@/validation/driver';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
 
 export const useDriver = ({
   id,
-  page,
+  page = 1,
   limit = 10,
   search,
-  sortingParams,
+  sortBy,
+  sortOrder,
   filterParams,
 }: FindManyDto<DriverResponse> & { id?: string }) => {
+  const queryClient = useQueryClient();
+
   const getDrivers = useCallback(async () => {
     const response = await apiService.get<PaginationResponse<DriverResponse>>(
       ApiEndpoint.DRIVERS,
       {
         queryParams: {
-          ...sortingParams,
           ...filterParams,
+          sortBy,
+          sortOrder,
           page,
           limit,
           search,
@@ -29,7 +33,7 @@ export const useDriver = ({
       },
     );
     return response.data;
-  }, [page, limit, search, sortingParams, filterParams]);
+  }, [page, limit, search, sortBy, sortOrder, filterParams]);
 
   const { data: driversData } = useQuery({
     queryKey: [
@@ -37,7 +41,8 @@ export const useDriver = ({
       page,
       limit,
       search,
-      sortingParams,
+      sortBy,
+      sortOrder,
       filterParams,
     ],
     queryFn: getDrivers,
@@ -69,6 +74,9 @@ export const useDriver = ({
     mutationKey: [MutationKey.CREATE_DRIVER],
     mutationFn: createDriver,
     onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.DRIVERS],
+      });
       toast.success('Driver created');
     },
   });
@@ -88,21 +96,30 @@ export const useDriver = ({
     mutationKey: [MutationKey.UPDATE_DRIVER],
     mutationFn: updateDriver,
     onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.DRIVERS],
+      });
       toast.success('Driver updated');
     },
   });
 
-  const deleteDriver = useCallback(async () => {
-    const response = await apiService.delete<void>(
-      ApiEndpoint.DRIVERS + `/${id}`,
-    );
-    return response.data;
-  }, [id]);
+  const deleteDriver = useCallback(
+    async (driverId?: string) => {
+      const response = await apiService.delete<void>(
+        ApiEndpoint.DRIVERS + `/${driverId || id}`,
+      );
+      return response.data;
+    },
+    [id],
+  );
 
   const deleteDriverMutation = useMutation({
     mutationKey: [MutationKey.DELETE_DRIVER],
     mutationFn: deleteDriver,
     onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKey.DRIVERS],
+      });
       toast.success('Driver deleted');
     },
   });

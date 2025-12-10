@@ -8,6 +8,7 @@ import {
   IsArray,
   ValidateNested,
   IsEnum,
+  IsDateString,
 } from 'class-validator';
 import { PaymentType, RideStatus } from 'generated/prisma';
 
@@ -53,4 +54,8 @@ export class CreateRideDto {
   @IsArray()
   @IsString({ each: true })
   rideExtraOptionIds?: string[];
+
+  @IsOptional()
+  @IsDateString()
+  scheduledAt?: string;
 }

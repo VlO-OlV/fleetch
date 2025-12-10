@@ -17,7 +17,8 @@ export const useUser = ({
   page,
   limit,
   search,
-  sortingParams,
+  sortBy,
+  sortOrder,
   filterParams,
 }: FindManyDto<UserResponse> & { hideToast?: boolean; id?: string }) => {
   const queryClient = useQueryClient();
@@ -39,8 +40,9 @@ export const useUser = ({
       ApiEndpoint.USERS,
       {
         queryParams: {
-          ...sortingParams,
           ...filterParams,
+          sortBy,
+          sortOrder,
           page,
           limit,
           search,
@@ -49,7 +51,7 @@ export const useUser = ({
       },
     );
     return response.data;
-  }, [page, limit, search, sortingParams, filterParams]);
+  }, [page, limit, search, sortBy, sortOrder, filterParams]);
 
   const { data: operatorsData } = useQuery({
     queryKey: [
@@ -57,7 +59,8 @@ export const useUser = ({
       page,
       limit,
       search,
-      sortingParams,
+      sortBy,
+      sortOrder,
       filterParams,
     ],
     queryFn: getOperators,
@@ -108,6 +111,7 @@ export const useUser = ({
     mutationKey: [MutationKey.CREATE_USER],
     mutationFn: createOperator,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.USERS] });
       toast.success('Operator created');
     },
   });
@@ -127,21 +131,26 @@ export const useUser = ({
     mutationKey: [MutationKey.UPDATE_USER],
     mutationFn: updateOperator,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.USERS] });
       toast.success('Operator updated');
     },
   });
 
-  const deleteOperator = useCallback(async () => {
-    const response = await apiService.delete<void>(
-      ApiEndpoint.USERS + `/${id}`,
-    );
-    return response.data;
-  }, [id]);
+  const deleteOperator = useCallback(
+    async (operatorId?: string) => {
+      const response = await apiService.delete<void>(
+        ApiEndpoint.USERS + `/${id}`,
+      );
+      return response.data;
+    },
+    [id],
+  );
 
   const deleteOperatorMutation = useMutation({
     mutationKey: [MutationKey.DELETE_USER],
     mutationFn: deleteOperator,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKey.USERS] });
       toast.success('Operator deleted');
     },
   });

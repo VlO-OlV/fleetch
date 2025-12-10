@@ -4,6 +4,7 @@ export interface ClientResponse {
   middleName?: string;
   lastName: string;
   phoneNumber?: string;
+  totalRides?: number;
   createdAt: string;
   updatedAt: string;
 }

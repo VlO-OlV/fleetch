@@ -1,6 +1,7 @@
 'use client';
 
-import * as React from 'react';
+import { useRide } from '@/hooks/use-ride';
+import { useMemo } from 'react';
 import {
   PieChart,
   Pie,
@@ -10,16 +11,43 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-type DataItem = { name: string; value: number; fill: string };
+export default function IncomeByRideClassPie() {
+  const { incomeStats } = useRide({});
 
-export default function IncomeByRideClassPie({ data }: { data?: DataItem[] }) {
-  const sample: DataItem[] = [
-    { name: 'Economy', value: 4200, fill: '#A78BFA' },
-    { name: 'Business', value: 8200, fill: '#FB7185' },
-    { name: 'Premium', value: 3200, fill: '#34D399' },
-  ];
+  const highContrastPalette = useMemo(
+    () => [
+      '#FF3838',
+      '#FF851B',
+      '#FFDC00',
+      '#2ECC40',
+      '#3DDB85',
+      '#008FFB',
+      '#006FEA',
+      '#B10DC9',
+      '#F012BE',
+      '#85144B',
+      '#FF4136',
+      '#FF851B',
+      '#FF6F61',
+      '#39CCCC',
+      '#01FF70',
+      '#7FDBFF',
+      '#B10DC9',
+      '#FFD700',
+      '#FF6347',
+      '#4B0082',
+    ],
+    [],
+  );
 
-  const chartData = data ?? sample;
+  const chartData = useMemo(
+    () =>
+      incomeStats?.map((stats, index) => ({
+        ...stats,
+        fill: highContrastPalette[index],
+      })),
+    [incomeStats],
+  );
 
   return (
     <div className="rounded-md bg-white p-4 shadow">
@@ -29,19 +57,18 @@ export default function IncomeByRideClassPie({ data }: { data?: DataItem[] }) {
           <PieChart>
             <Pie
               data={chartData}
-              dataKey="value"
-              nameKey="name"
+              dataKey="totalIncome"
+              nameKey="rideClass"
               cx="50%"
               cy="50%"
               outerRadius={80}
-              label
             />
             <Tooltip
               formatter={(value) =>
                 new Intl.NumberFormat('en-US', {
                   style: 'currency',
                   currency: 'USD',
-                }).format(Number(value))
+                }).format(+Number(value).toFixed(2))
               }
             />
             <Legend verticalAlign="bottom" height={36} />

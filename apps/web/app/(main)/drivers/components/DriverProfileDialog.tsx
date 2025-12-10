@@ -37,10 +37,10 @@ export const DriverProfileDialog: FC<DriverProfileDialogProps> = ({
               {formatName(driver.firstName, driver.middleName, driver.lastName)}
             </p>
             <p>
-              <strong>Phone:</strong> {driver.phoneNumber}
+              <strong>Phone:</strong> {driver.phoneNumber || '-'}
             </p>
             <p>
-              <strong>Ride Class:</strong> {driver.rideClassId}
+              <strong>Ride Class:</strong> {driver.rideClass.name}
             </p>
             <p>
               <strong>Car #:</strong> {driver.carNumber}
@@ -51,7 +51,13 @@ export const DriverProfileDialog: FC<DriverProfileDialogProps> = ({
           </div>
         )}
         <DialogFooter>
-          <Button variant="destructive" onClick={() => deleteDriver()}>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              onOpenChange(false);
+              deleteDriver(driver?.id);
+            }}
+          >
             Delete
           </Button>
           <Button onClick={() => onOpenChange(false)}>Close</Button>

@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { AdminGuard } from 'src/common/guards/admin/admin.guard';
 import { JwtGuard } from 'src/common/guards/jwt/jwt.guard';
 import { UserByIdPipe } from 'src/common/pipes/user-by-id.pipe';
 import { UserPayload } from 'src/common/types';
@@ -47,11 +48,19 @@ export class UserController {
     return this.userService.findById(id);
   }
 
+  @UseGuards(AdminGuard)
   @Post('/')
   public async createUser(@Body() dto: CreateUserDto) {
     return this.userService.create(dto);
   }
 
+  @UseGuards(AdminGuard)
+  @Post('/:id/reset')
+  public async resetUserPassword(@Param('id', UserByIdPipe) id: string) {
+    return this.userService.resetPassword(id);
+  }
+
+  @UseGuards(AdminGuard)
   @Patch('/:id')
   public async updateUser(
     @Param('id', UserByIdPipe) id: string,
@@ -60,6 +69,7 @@ export class UserController {
     return this.userService.updateById(id, dto);
   }
 
+  @UseGuards(AdminGuard)
   @Delete('/:id')
   public async deleteUser(@Param('id', UserByIdPipe) id: string) {
     return this.userService.deleteById(id);

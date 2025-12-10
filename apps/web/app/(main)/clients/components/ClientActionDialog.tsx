@@ -1,8 +1,5 @@
-'use client';
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { clientFormSchema, ClientFormValues } from './clientFormSchema';
 import {
   Form,
   FormField,
@@ -13,20 +10,53 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { FC, useEffect, useMemo } from 'react';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { CreateClientDto, createClientSchema } from '@/validation/client';
+import { useClient } from '@/hooks/use-client';
+import { ClientResponse } from '@/types/client';
 
-export function ClientEditDialogForm({
-  defaultValues,
-  onSubmit,
-  onCancel,
-}: {
-  defaultValues?: Partial<ClientFormValues>;
-  onSubmit: (values: ClientFormValues) => void;
-  onCancel: () => void;
-}) {
-  const form = useForm<ClientFormValues>({
-    resolver: zodResolver(clientFormSchema),
-    defaultValues: defaultValues || {},
+interface ClientActionDialogProps {
+  isOpen: boolean;
+  onOpenChange: (value: boolean) => void;
+  client: ClientResponse | null;
+}
+
+const ClientDialogForm: FC<ClientActionDialogProps> = ({
+  client,
+  onOpenChange,
+}) => {
+  const { createClient, updateClient } = useClient({ id: client?.id });
+
+  const defaultValues: CreateClientDto = useMemo(
+    () => ({
+      firstName: client?.firstName || '',
+      middleName: client?.middleName || undefined,
+      lastName: client?.lastName || '',
+      phoneNumber: client?.phoneNumber || undefined,
+    }),
+    [client?.id],
+  );
+
+  const form = useForm<CreateClientDto>({
+    resolver: zodResolver(createClientSchema),
+    defaultValues: { ...defaultValues },
   });
+
+  useEffect(() => form.reset({ ...defaultValues }), [defaultValues]);
+
+  const onSubmit = (data: CreateClientDto) => {
+    if (client?.id) {
+      updateClient({ ...data }, { onSuccess: () => onOpenChange(false) });
+    } else {
+      createClient({ ...data }, { onSuccess: () => onOpenChange(false) });
+    }
+  };
+
+  const onCancel = () => {
+    form.reset({ ...defaultValues });
+    onOpenChange(false);
+  };
 
   return (
     <Form {...form}>
@@ -71,7 +101,7 @@ export function ClientEditDialogForm({
           )}
         />
         <FormField
-          name="phone"
+          name="phoneNumber"
           control={form.control}
           render={({ field }) => (
             <FormItem>
@@ -92,4 +122,17 @@ export function ClientEditDialogForm({
       </form>
     </Form>
   );
-}
+};
+
+export const ClientActionDialog: FC<ClientActionDialogProps> = ({
+  ...props
+}) => {
+  return (
+    <Dialog open={props.isOpen} onOpenChange={props.onOpenChange}>
+      <DialogContent>
+        <DialogTitle>{props.client ? 'Edit Client' : 'Add Client'}</DialogTitle>
+        <ClientDialogForm {...props} />
+      </DialogContent>
+    </Dialog>
+  );
+};

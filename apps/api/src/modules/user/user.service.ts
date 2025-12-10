@@ -1,7 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from 'generated/prisma';
+import crypto from 'node:crypto';
+
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+import { Prisma, State, UserRole } from 'generated/prisma';
 import { UserRepository } from 'src/database/repositories/user.repository';
 
+import { EmailService } from '../email/email.service';
 import { FileService } from '../file/file.service';
 
 import { CreateUserDto } from './dtos/create-user.dto';
@@ -13,6 +21,7 @@ export class UserService {
   public constructor(
     private readonly userRepository: UserRepository,
     private readonly fileService: FileService,
+    private readonly emailService: EmailService,
   ) {}
 
   public async findById(id: string) {
@@ -35,7 +44,10 @@ export class UserService {
 
   public async updateById(
     id: string,
-    { profileImageId, ...data }: UpdateUserDto & { password?: string },
+    {
+      profileImageId,
+      ...data
+    }: UpdateUserDto & { password?: string; state?: State },
   ) {
     if (profileImageId) {
       const fileMetadata =
@@ -62,21 +74,23 @@ export class UserService {
     const {
       page = 1,
       limit = 10,
-      firstName,
-      middleName,
-      lastName,
+      search,
+      sortBy,
+      sortOrder = 'asc',
       state,
     } = query;
 
-    const where: Prisma.UserWhereInput = {};
-    if (firstName) {
-      where.firstName = { contains: firstName, mode: 'insensitive' };
-    }
-    if (lastName) {
-      where.lastName = { contains: lastName, mode: 'insensitive' };
-    }
-    if (middleName) {
-      where.middleName = { contains: middleName, mode: 'insensitive' };
+    const where: Prisma.UserWhereInput = {
+      role: { not: UserRole.ADMIN },
+    };
+    if (search) {
+      where.OR = [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { middleName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { phoneNumber: { contains: search, mode: 'insensitive' } },
+      ];
     }
     if (state) {
       where.state = state;
@@ -86,6 +100,7 @@ export class UserService {
       where,
       limit,
       (page - 1) * limit,
+      sortBy ? { [sortBy]: sortOrder } : undefined,
     );
     const totalUsers = await this.userRepository.count(where);
 
@@ -97,9 +112,62 @@ export class UserService {
     };
   }
 
+  private generatePassword(length: number) {
+    const lowerCase = 'abcdefghijklmnopqrstuvwxyz';
+    const upperCase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numbers = '0123456789';
+    const symbols = '#$&#$&#$&#$&#$&';
+
+    const allChars = lowerCase + upperCase + numbers + symbols;
+
+    let password = '';
+    const bytes = crypto.randomBytes(length);
+
+    for (let i = 0; i < length; i++) {
+      const randomIndex = bytes[i] % allChars.length;
+      password += allChars[randomIndex];
+    }
+
+    return password;
+  }
+
+  private async hashPassword(password: string) {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
+  }
+
   public async create(data: CreateUserDto) {
-    const password = 'sdfsdfsdfs';
-    return this.userRepository.create({ ...data, password });
+    const user = await this.findByEmail(data.email);
+    if (user) {
+      throw new BadRequestException('User with such email already exists');
+    }
+
+    const password = this.generatePassword(12);
+    const hashedPassword = await this.hashPassword(password);
+
+    await this.userRepository.create({ ...data, password: hashedPassword });
+
+    await this.emailService.sendEmail({
+      subject: 'Account Credentials',
+      to: data.email,
+      message: `Your account has been created. Your password is: ${password}`,
+    });
+  }
+
+  public async resetPassword(id: string) {
+    const password = this.generatePassword(12);
+    const hashedPassword = await this.hashPassword(password);
+
+    const user = await this.userRepository.updateOne(
+      { id },
+      { password: hashedPassword },
+    );
+
+    await this.emailService.sendEmail({
+      subject: 'Account Credentials',
+      to: user.email,
+      message: `Your account credentials have been updated. Your password is: ${password}`,
+    });
   }
 
   public async deleteById(id: string) {

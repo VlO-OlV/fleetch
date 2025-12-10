@@ -48,12 +48,12 @@ import { DriverStatusToDetailsMap } from '@/lib/consts';
 import { DriverTableRow } from './components/DriverTableRow';
 import { DriverActionDialog } from './components/DriverActionDialog';
 import { DriverProfileDialog } from './components/DriverProfileDialog';
+import { useRideClass } from '@/hooks/use-ride-class';
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 
 export default function DriversPage() {
   const [search, setSearch] = useState<string>('');
-  const [sort, setSort] = useState<SortingDto<DriverResponse>['sortingParams']>(
-    {},
-  );
+  const [sort, setSort] = useState<SortingDto<DriverResponse>>({});
   const [filter, setFilter] = useState<
     FilterDto<DriverResponse>['filterParams']
   >({});
@@ -62,9 +62,10 @@ export default function DriversPage() {
   const { drivers } = useDriver({
     page,
     filterParams: { ...filter },
-    sortingParams: { ...sort },
+    ...sort,
     search,
   });
+  const { rideClasses } = useRideClass({});
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
@@ -106,10 +107,15 @@ export default function DriversPage() {
   );
 
   const displayedPages = useMemo(() => {
-    if (page === 0) return [1, 2, 3];
-    if (page === drivers?.totalPages) return [page - 2, page - 1, page];
-    return [page - 1, page, page + 1];
-  }, [page, drivers?.totalPages]);
+    if (!drivers?.totalPages) return [];
+    if (page === 0)
+      return [1, 2, 3].filter((value) => value <= drivers.totalPages);
+    if (page === drivers?.totalPages)
+      return [page - 2, page - 1, page].filter((value) => value > 0);
+    return [page - 1, page, page + 1].filter(
+      (value) => value > 0 && value <= drivers.totalPages,
+    );
+  }, [page, drivers]);
 
   return (
     <div className="w-full">
@@ -155,12 +161,19 @@ export default function DriversPage() {
               <SelectValue placeholder="All classes" />
             </SelectTrigger>
             <SelectContent>
-              <SelectGroup>{/* */}</SelectGroup>
+              <SelectGroup>
+                {rideClasses?.data.map((rideClass) => (
+                  <SelectItem key={rideClass.id} value={rideClass.id}>
+                    {rideClass.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
 
           <Button
             onClick={() => {
+              setSelectedDriver(null);
               setIsDialogOpen(true);
             }}
             className="h-9"
@@ -177,17 +190,28 @@ export default function DriversPage() {
                     key={index}
                     onClick={() =>
                       setSort((prev) => ({
-                        ...prev,
-                        [key]: prev?.[key]
-                          ? prev[key] === 'asc'
-                            ? 'desc'
-                            : 'asc'
-                          : 'asc',
+                        sortBy: key,
+                        sortOrder:
+                          prev.sortBy === key
+                            ? prev.sortOrder === 'asc'
+                              ? 'desc'
+                              : 'asc'
+                            : 'asc',
                       }))
                     }
                     className="cursor-pointer"
                   >
-                    {label}
+                    <div className="flex gap-2 items-center">
+                      <p>{label}</p>
+                      {sort.sortBy === key &&
+                        (sort.sortOrder === 'asc' ? (
+                          <ChevronUpIcon size={18} />
+                        ) : (
+                          sort.sortOrder === 'desc' && (
+                            <ChevronDownIcon size={18} />
+                          )
+                        ))}
+                    </div>
                   </TableHead>
                 ))}
                 <TableHead>Actions</TableHead>

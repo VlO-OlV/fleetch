@@ -1,3 +1,5 @@
+import { RideClassResponse } from '../ride';
+
 export enum DriverStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
@@ -12,6 +14,7 @@ export interface DriverResponse {
   phoneNumber?: string;
   carNumber: string;
   totalRides: number;
+  rideClass: RideClassResponse;
   rideClassId: string;
   status: DriverStatus;
   createdAt: string;

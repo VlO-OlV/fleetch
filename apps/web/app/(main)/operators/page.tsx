@@ -9,12 +9,6 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
   Pagination,
@@ -31,103 +25,73 @@ import {
   SelectContent,
   SelectItem,
   SelectValue,
+  SelectGroup,
 } from '@/components/ui/select';
-import { OperatorEditDialogForm } from './OperatorEditDialogForm';
-
-type Operator = {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  state: 'pending' | 'verified' | 'verified';
-};
-
-function makeOperators(count = 35) {
-  const states: Operator['state'][] = ['pending', 'verified', 'verified'];
-  return Array.from({ length: count }).map((_, i) => ({
-    id: String(3000 + i),
-    name: `Operator ${i + 1}`,
-    email: `operator${i + 1}@example.com`,
-    phone: `+1234567890${i}`,
-    state: states[i % states.length],
-  })) as Operator[];
-}
+import { FilterDto, SortingDto } from '@/types';
+import { UserResponse } from '@/types/user';
+import { useUser } from '@/hooks/use-user';
+import { UserStateToDetailsMap } from '@/lib/consts';
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
+import { OperatorTableRow } from './components/OperatorTableRow';
+import { OperatorProfileDialog } from './components/OperatorProfileDialog';
+import { OpearatorActionDialog } from './components/OperatorActionDialog';
 
 export default function OperatorsPage() {
-  const [search, setSearch] = useState('');
-  const [sortKey, setSortKey] = useState<'name' | 'email' | 'phone' | 'state'>(
-    'name',
+  const [search, setSearch] = useState<string>('');
+  const [sort, setSort] = useState<SortingDto<UserResponse>>({});
+  const [filter, setFilter] = useState<FilterDto<UserResponse>['filterParams']>(
+    {},
   );
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
-  const [filterState, setFilterState] = useState<string>('');
-  const [data, setData] = useState(() => makeOperators(35));
-  const [page, setPage] = useState(1);
-  const pageSize = 10;
-  const pageCount = Math.ceil(data.length / pageSize);
+  const [page, setPage] = useState<number>(1);
 
-  // Search, filter, sort
-  const filtered = useMemo(() => {
-    let arr = [...data];
-    if (search)
-      arr = arr.filter(
-        (c) =>
-          c.name.toLowerCase().includes(search.toLowerCase()) ||
-          c.email.toLowerCase().includes(search.toLowerCase()) ||
-          (c.phone || '').toLowerCase().includes(search.toLowerCase()),
-      );
-    if (filterState) arr = arr.filter((c) => c.state === filterState);
-    arr.sort((a, b) => {
-      const vA = (a[sortKey] ?? '') as string;
-      const vB = (b[sortKey] ?? '') as string;
-      if (vA < vB) return sortDir === 'asc' ? -1 : 1;
-      if (vA > vB) return sortDir === 'asc' ? 1 : -1;
-      return 0;
-    });
-    return arr;
-  }, [data, search, filterState, sortKey, sortDir]);
+  const { operators } = useUser({
+    page,
+    filterParams: { ...filter },
+    ...sort,
+    search,
+  });
 
-  const items = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [selectedOperator, setSelectedOperator] = useState<UserResponse | null>(
+    null,
+  );
 
-  // Dialog state
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<Operator | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editOperator, setEditOperator] = useState<Operator | null>(null);
+  const tableHeader: {
+    key: keyof UserResponse;
+    label: string;
+  }[] = useMemo(
+    () => [
+      {
+        key: 'firstName',
+        label: 'Name',
+      },
+      {
+        key: 'email',
+        label: 'Email',
+      },
+      {
+        key: 'phoneNumber',
+        label: 'Phone',
+      },
+      {
+        key: 'state',
+        label: 'State',
+      },
+    ],
+    [],
+  );
 
-  function openProfile(c: Operator) {
-    setSelected(c);
-    setOpen(true);
-  }
-
-  function openEditDialog(operator?: Operator) {
-    setEditOperator(operator || null);
-    setEditDialogOpen(true);
-  }
-
-  function handleSaveOperator(values: {
-    name: string;
-    phone?: string;
-    email: string;
-    state: Operator['state'];
-  }) {
-    if (editOperator) {
-      // Edit
-      setData((prev) =>
-        prev.map((c) => (c.id === editOperator.id ? { ...c, ...values } : c)),
-      );
-    } else {
-      // Create
-      const newId = String(3000 + data.length);
-      setData((prev) => [{ id: newId, ...values }, ...prev]);
-    }
-    setEditDialogOpen(false);
-  }
-
-  function handleDeleteOperator(id: string) {
-    if (!confirm('Delete operator?')) return;
-    setData((prev) => prev.filter((c) => c.id !== id));
-    setOpen(false);
-  }
+  const displayedPages = useMemo(() => {
+    if (!operators?.totalPages) return [];
+    if (page === 0)
+      return [1, 2, 3].filter((value) => value <= operators.totalPages);
+    if (page === operators?.totalPages)
+      return [page - 2, page - 1, page].filter((value) => value > 0);
+    return [page - 1, page, page + 1].filter(
+      (value) => value > 0 && value <= operators.totalPages,
+    );
+  }, [page, operators]);
 
   return (
     <div className="w-full">
@@ -140,17 +104,34 @@ export default function OperatorsPage() {
             placeholder="Search"
             className="w-[300px]"
           />
-          <Select onValueChange={(v) => setFilterState(v)}>
+          <Select
+            onValueChange={(value) =>
+              setFilter((prev) => ({ ...prev, state: value }))
+            }
+            value={filter?.state}
+          >
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Filter state" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="suspended">Suspended</SelectItem>
+              <SelectGroup>
+                {Object.entries(UserStateToDetailsMap).map(
+                  ([status, { label }]) => (
+                    <SelectItem key={status} value={status}>
+                      {label}
+                    </SelectItem>
+                  ),
+                )}
+              </SelectGroup>
             </SelectContent>
           </Select>
-          <Button onClick={() => openEditDialog()} className="h-9">
+          <Button
+            onClick={() => {
+              setSelectedOperator(null);
+              setIsDialogOpen(true);
+            }}
+            className="h-9"
+          >
             Add Operator
           </Button>
         </div>
@@ -158,68 +139,52 @@ export default function OperatorsPage() {
           <Table>
             <TableHeader>
               <tr>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('name');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Name
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('email');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Email
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('phone');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer"
-                >
-                  Phone
-                </TableHead>
-                <TableHead
-                  onClick={() => {
-                    setSortKey('state');
-                    setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
-                  }}
-                  className="cursor-pointer w-[150px]"
-                >
-                  State
-                </TableHead>
+                {tableHeader.map(({ key, label }, index) => (
+                  <TableHead
+                    key={index}
+                    onClick={() =>
+                      setSort((prev) => ({
+                        sortBy: key,
+                        sortOrder:
+                          prev.sortBy === key
+                            ? prev.sortOrder === 'asc'
+                              ? 'desc'
+                              : 'asc'
+                            : 'asc',
+                      }))
+                    }
+                    className="cursor-pointer"
+                  >
+                    <div className="flex gap-2 items-center">
+                      <p>{label}</p>
+                      {sort.sortBy === key &&
+                        (sort.sortOrder === 'asc' ? (
+                          <ChevronUpIcon size={18} />
+                        ) : (
+                          sort.sortOrder === 'desc' && (
+                            <ChevronDownIcon size={18} />
+                          )
+                        ))}
+                    </div>
+                  </TableHead>
+                ))}
                 <TableHead className="w-[200px]">Actions</TableHead>
               </tr>
             </TableHeader>
             <TableBody>
-              {items.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell>{c.name}</TableCell>
-                  <TableCell>{c.email}</TableCell>
-                  <TableCell>{c.phone || '-'}</TableCell>
-                  <TableCell className="w-[150px] capitalize">
-                    {c.state}
-                  </TableCell>
-                  <TableCell className="w-[200px]">
-                    <Button size="sm" onClick={() => openProfile(c)}>
-                      View
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openEditDialog(c)}
-                      className="ml-2"
-                    >
-                      Edit
-                    </Button>
-                  </TableCell>
-                </TableRow>
+              {operators?.data.map((operator, index) => (
+                <OperatorTableRow
+                  key={index}
+                  operator={operator}
+                  onEdit={() => {
+                    setSelectedOperator(operator);
+                    setIsDialogOpen(true);
+                  }}
+                  onOpenProfile={() => {
+                    setSelectedOperator(operator);
+                    setIsProfileDialogOpen(true);
+                  }}
+                />
               ))}
             </TableBody>
           </Table>
@@ -230,71 +195,36 @@ export default function OperatorsPage() {
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                 />
               </PaginationItem>
-              {Array.from({ length: pageCount }).map((_, i) => (
-                <PaginationItem key={i}>
+              {displayedPages.map((value) => (
+                <PaginationItem key={value}>
                   <PaginationLink
-                    isActive={page === i + 1}
-                    onClick={() => setPage(i + 1)}
+                    isActive={page === value}
+                    onClick={() => setPage(value)}
                   >
-                    {i + 1}
+                    {value}
                   </PaginationLink>
                 </PaginationItem>
               ))}
               <PaginationItem>
                 <PaginationNext
-                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                  onClick={() =>
+                    setPage((p) => Math.min(operators?.totalPages || 0, p + 1))
+                  }
                 />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent>
-            <DialogTitle>Operator profile</DialogTitle>
-            {selected ? (
-              <div className="mt-2">
-                <p>
-                  <strong>ID:</strong> {selected.id}
-                </p>
-                <p>
-                  <strong>Name:</strong> {selected.name}
-                </p>
-                <p>
-                  <strong>Email:</strong> {selected.email}
-                </p>
-                <p>
-                  <strong>Phone:</strong> {selected.phone}
-                </p>
-                <p>
-                  <strong>State:</strong> {selected.state}
-                </p>
-              </div>
-            ) : (
-              <p>No operator selected</p>
-            )}
-            <DialogFooter>
-              <Button
-                variant="destructive"
-                onClick={() => selected && handleDeleteOperator(selected.id)}
-              >
-                Delete
-              </Button>
-              <Button onClick={() => setOpen(false)}>Close</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent>
-            <DialogTitle>
-              {editOperator ? 'Edit Operator' : 'Add Operator'}
-            </DialogTitle>
-            <OperatorEditDialogForm
-              defaultValues={editOperator || undefined}
-              onSubmit={handleSaveOperator}
-              onCancel={() => setEditDialogOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
+        <OperatorProfileDialog
+          isOpen={isProfileDialogOpen}
+          onOpenChange={setIsProfileDialogOpen}
+          operator={selectedOperator}
+        />
+        <OpearatorActionDialog
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          operator={selectedOperator}
+        />
       </main>
     </div>
   );

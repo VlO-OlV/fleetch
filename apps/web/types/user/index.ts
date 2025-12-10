@@ -11,11 +11,11 @@ export enum UserState {
 export interface UserResponse {
   id: string;
   email: string;
-  profileImageId: string | null;
+  profileImageId?: string;
   password: string;
-  phoneNumber: string | null;
+  phoneNumber?: string;
   firstName: string;
-  middleName: string | null;
+  middleName?: string;
   lastName: string;
   role: UserRole;
   state: UserState;
