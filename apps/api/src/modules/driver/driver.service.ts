@@ -77,7 +77,10 @@ export class DriverService {
     return this.driverRepository.create({ ...dto });
   }
 
-  public async updateById(id: string, dto: UpdateDriverDto) {
+  public async updateById(
+    id: string,
+    dto: UpdateDriverDto & { totalRides?: number },
+  ) {
     return this.driverRepository.updateOne({ id }, { ...dto });
   }
 
