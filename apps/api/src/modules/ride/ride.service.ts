@@ -230,6 +230,13 @@ export class RideService {
 
     await this.validateRelations({ ...dto });
 
+    if (data.status === RideStatus.COMPLETED && data.driverId) {
+      const driver = await this.driverService.findById(data.driverId);
+      await this.driverService.updateById(data.driverId, {
+        totalRides: driver.totalRides + 1,
+      });
+    }
+
     return this.prisma.$transaction(async (tx) => {
       const ride = await this.rideRepository.updateOne(
         {
@@ -237,11 +244,13 @@ export class RideService {
         },
         {
           ...data,
-          status: data.driverId
-            ? data.scheduledAt
-              ? RideStatus.UPCOMING
-              : RideStatus.IN_PROGRESS
-            : RideStatus.PENDING,
+          status:
+            data.status ||
+            (data.driverId
+              ? data.scheduledAt
+                ? RideStatus.UPCOMING
+                : RideStatus.IN_PROGRESS
+              : RideStatus.PENDING),
           ...(locations
             ? {
                 locations: {

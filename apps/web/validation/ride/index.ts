@@ -38,6 +38,7 @@ export const createRideSchema = z.object({
   operatorId: z.uuid('Operator is required'),
   totalPrice: z.number().min(0, 'Total price must be positive'),
   paymentType: z.enum(PaymentType, 'Payment type is required'),
+  status: z.enum(RideStatus).optional(),
   rideExtraOptionIds: z.array(z.uuid('Invalid extra options')).optional(),
   locations: z
     .array(
