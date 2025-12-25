@@ -19,7 +19,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY --from=pruner /app/out/json/ .
-RUN yarn install --frozen-lockfile
+RUN yarn install --production --frozen-lockfile
  
 # Build the project
 COPY --from=pruner /app/out/full/ .
@@ -38,11 +38,11 @@ RUN adduser --system --uid 1001 nodejs
 USER nodejs
 
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/apps/api/generated ./api/generated
 COPY --from=builder --chown=nodejs:nodejs /app/apps/api/dist ./api/dist
 COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nodejs:nodejs /app/yarn.lock ./yarn.lock
 
-ENV NODE_ENV=development
-EXPOSE 3001
+EXPOSE 80
 
 CMD ["node", "./api/dist/main"]

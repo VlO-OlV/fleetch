@@ -1,39 +1,14 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:16-alpine
-    restart: always
-    env-file:
-      - ./apps/api/.env.production
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
-    ports:
-      - '5432:5432'
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   backend:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
     ports:
-      - '3001:3001'
+      - '80:80'
     env-file:
       - ./apps/api/.env.production
-    environment:
-      DATABASE_URL: postgres://postgres:postgres@db:5432/fleetch
-      NODE_ENV: production
-    depends_on:
-      db:
-        condition: service_healthy
     restart: always
 
   frontend:
@@ -47,6 +22,3 @@ services:
     depends_on:
       - backend
     restart: always
-
-volumes:
-  pgdata:

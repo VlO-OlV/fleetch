@@ -1,0 +1,23 @@
+service: fleetch-api
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: us-east-1
+  ecr:
+    images:
+      fleetch-api-image:
+        path: ../..
+        file: Dockerfile
+
+functions:
+  api:
+    image:
+      name: fleetch-api-image
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: '*'
+
+plugins:
+  - serverless-offline
