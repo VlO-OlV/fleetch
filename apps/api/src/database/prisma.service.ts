@@ -1,10 +1,13 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { PrismaClient, State, UserRole } from 'generated/prisma';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit {
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
   public constructor(private configService: ConfigService) {
     super();
   }
@@ -36,5 +39,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
         state: State.VERIFIED,
       },
     });
+  }
+
+  public async onModuleDestroy() {
+    await this.$disconnect();
   }
 }
