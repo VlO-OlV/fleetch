@@ -4,6 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AccessModule } from 'src/common/guards/access.module';
 import configuration from 'src/config/configuration';
 import { DatabaseModule } from 'src/database/database.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 import { ApiModule } from './api.module';
 
@@ -25,6 +26,7 @@ import { ApiModule } from './api.module';
     ApiModule,
     DatabaseModule,
     AccessModule,
+    RedisModule,
   ],
 })
 export class AppModule {}

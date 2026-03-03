@@ -8,13 +8,13 @@
   "packageManager": "yarn@4.6.0",
   "scripts": {
     "build": "nest build",
-    "format": "prettier --write \"**/*.ts\"",
-    "format-check": "prettier --check \"**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format-check": "prettier --check \"src/**/*.ts\"",
     "start": "nest start",
     "start:dev": "NODE_ENV=development nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "NODE_ENV=production node dist/main",
-    "lint": "eslint . --fix **/*.ts",
+    "lint": "eslint . --fix src/**/*.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -22,7 +22,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prisma-migrate:dev": "dotenv -e .env.development -- npx prisma migrate dev",
     "prisma-migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy",
-    "prisma-generate": "dotenv -e .env.development -- npx prisma generate"
+    "prisma-generate": "dotenv -e .env.development -- npx prisma generate",
+    "db:start": "docker compose --env-file .env.development -f docker-compose.yml up",
+    "db:stop": "docker compose --env-file .env.development -f docker-compose.yml down"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.932.0",
@@ -34,6 +36,7 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.9",
     "@nestjs/swagger": "^11.2.3",
+    "@nestjs/terminus": "^11.1.1",
     "@nestjs/throttler": "^6.4.0",
     "@prisma/client": "^6.16.3",
     "bcrypt": "^6.0.0",

@@ -6,6 +6,7 @@ import { DriverModule } from './driver/driver.module';
 import { EmailModule } from './email/email.module';
 import { ExtraOptionModule } from './extra-option/extra-option.module';
 import { FileModule } from './file/file.module';
+import { HealthModule } from './health/health.module';
 import { RideModule } from './ride/ride.module';
 import { RideClassModule } from './ride-class/ride-class.module';
 import { TokenModule } from './token/token.module';
@@ -23,6 +24,7 @@ import { UserModule } from './user/user.module';
     RideModule,
     RideClassModule,
     ExtraOptionModule,
+    HealthModule,
   ],
 })
 export class ApiModule {}
