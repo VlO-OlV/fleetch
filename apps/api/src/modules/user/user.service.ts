@@ -6,8 +6,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { Prisma, State, UserRole } from 'generated/prisma';
+import { Prisma, State, User, UserRole } from 'generated/prisma';
+import { RedisExpiryPeriod, RedisKey } from 'src/common/consts';
 import { UserRepository } from 'src/database/repositories/user.repository';
+import { RedisService } from 'src/redis/redis.service';
 
 import { EmailService } from '../email/email.service';
 import { FileService } from '../file/file.service';
@@ -22,9 +24,16 @@ export class UserService {
     private readonly userRepository: UserRepository,
     private readonly fileService: FileService,
     private readonly emailService: EmailService,
+    private readonly redisService: RedisService,
   ) {}
 
   public async findById(id: string) {
+    const cachedUser = await this.redisService.getKey<User>(RedisKey.USER, id);
+
+    if (cachedUser) {
+      return cachedUser;
+    }
+
     const user = await this.userRepository.findOne({
       id,
     });
@@ -37,6 +46,15 @@ export class UserService {
   }
 
   public async findByEmail(email: string) {
+    const cachedUser = await this.redisService.getKey<User>(
+      RedisKey.USER,
+      email,
+    );
+
+    if (cachedUser) {
+      return cachedUser;
+    }
+
     return this.userRepository.findOne({
       email,
     });
@@ -63,6 +81,19 @@ export class UserService {
         ...data,
         profileImageId: profileImageId || undefined,
       },
+    );
+
+    await this.redisService.setKey<User>(
+      RedisKey.USER,
+      id,
+      { ...updatedUser },
+      RedisExpiryPeriod.LONG,
+    );
+    await this.redisService.setKey<User>(
+      RedisKey.USER,
+      updatedUser.email,
+      { ...updatedUser },
+      RedisExpiryPeriod.LONG,
     );
 
     if (updatedUser.profileImageId && profileImageId === null) {
@@ -145,7 +176,23 @@ export class UserService {
     const password = this.generatePassword(12);
     const hashedPassword = await this.hashPassword(password);
 
-    await this.userRepository.create({ ...data, password: hashedPassword });
+    const newUser = await this.userRepository.create({
+      ...data,
+      password: hashedPassword,
+    });
+
+    await this.redisService.setKey<User>(
+      RedisKey.USER,
+      newUser.id,
+      { ...newUser },
+      RedisExpiryPeriod.LONG,
+    );
+    await this.redisService.setKey<User>(
+      RedisKey.USER,
+      newUser.email,
+      { ...newUser },
+      RedisExpiryPeriod.LONG,
+    );
 
     await this.emailService.sendEmail({
       subject: 'Account Credentials',
@@ -163,6 +210,19 @@ export class UserService {
       { password: hashedPassword },
     );
 
+    await this.redisService.setKey<User>(
+      RedisKey.USER,
+      id,
+      { ...user },
+      RedisExpiryPeriod.LONG,
+    );
+    await this.redisService.setKey<User>(
+      RedisKey.USER,
+      user.email,
+      { ...user },
+      RedisExpiryPeriod.LONG,
+    );
+
     await this.emailService.sendEmail({
       subject: 'Account Credentials',
       to: user.email,
@@ -171,10 +231,11 @@ export class UserService {
   }
 
   public async deleteById(id: string) {
-    return this.userRepository.deleteOne({ id });
-  }
+    const deletedUser = await this.userRepository.deleteOne({ id });
 
-  public async deleteMany(where: Prisma.UserWhereInput) {
-    return this.userRepository.deleteMany(where);
+    await this.redisService.deleteKey(RedisKey.USER, id);
+    await this.redisService.deleteKey(RedisKey.USER, deletedUser.email);
+
+    return { ...deletedUser, password: undefined };
   }
 }

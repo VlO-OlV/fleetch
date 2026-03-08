@@ -15,10 +15,9 @@ export class PrismaService
   public async onModuleInit() {
     await this.$connect();
 
-    const adminEmail = this.configService.get<string>('adminEmail') as string;
-    const adminPassword = this.configService.get<string>(
-      'adminPassword',
-    ) as string;
+    const adminEmail = this.configService.getOrThrow<string>('adminEmail');
+    const adminPassword =
+      this.configService.getOrThrow<string>('adminPassword');
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(adminPassword, salt);
     await this.user.upsert({

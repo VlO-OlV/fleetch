@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { BullMQModule } from 'src/bullmq/bullmq.module';
 import { AccessModule } from 'src/common/guards/access.module';
 import configuration from 'src/config/configuration';
 import { DatabaseModule } from 'src/database/database.module';
@@ -27,6 +28,7 @@ import { ApiModule } from './api.module';
     DatabaseModule,
     AccessModule,
     RedisModule,
+    BullMQModule,
   ],
 })
 export class AppModule {}

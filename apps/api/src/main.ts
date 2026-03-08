@@ -8,7 +8,7 @@ import { AppModule } from './modules/app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get<ConfigService>(ConfigService);
-  const port = configService.get<number>('port') as number;
+  const port = configService.getOrThrow<number>('port');
 
   app.setGlobalPrefix('api');
   app.enableCors({

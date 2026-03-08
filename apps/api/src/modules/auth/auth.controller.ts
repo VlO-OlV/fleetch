@@ -33,7 +33,7 @@ export class AuthController {
     CookieUtils.setTokenCookie(
       res,
       tokens.refreshToken,
-      this.configService.get<number>('auth.refreshTTL'),
+      this.configService.getOrThrow<number>('auth.refreshTTL'),
     );
 
     return {
@@ -63,7 +63,7 @@ export class AuthController {
     CookieUtils.setTokenCookie(
       res,
       tokens.refreshToken,
-      this.configService.get<number>('auth.refreshTTL'),
+      this.configService.getOrThrow<number>('auth.refreshTTL'),
     );
 
     return {
@@ -96,12 +96,12 @@ export class AuthController {
       CookieUtils.setTokenCookie(
         res,
         tokens.refreshToken,
-        this.configService.get<number>('auth.refreshTTL'),
+        this.configService.getOrThrow<number>('auth.refreshTTL'),
       );
     }
 
     res.redirect(
-      (this.configService.get<string>('frontend') as string) +
+      this.configService.getOrThrow<string>('frontend') +
         `?googleAuth=${user.id ? 'success' : 'failed'}`,
     );
   }

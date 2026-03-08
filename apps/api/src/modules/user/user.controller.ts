@@ -45,7 +45,9 @@ export class UserController {
 
   @Get('/:id')
   public async getUserById(@Param('id', UserByIdPipe) id: string) {
-    return this.userService.findById(id);
+    const user = await this.userService.findById(id);
+
+    return { ...user, password: undefined };
   }
 
   @UseGuards(AdminGuard)

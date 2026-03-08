@@ -1,16 +1,17 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
-import { MailerService } from '@nestjs-modules/mailer';
+import { Queue } from 'bullmq';
+import { BullMQKey } from 'src/common/consts';
 import { EmailOptions } from 'src/common/types';
 
 @Injectable()
 export class EmailService {
-  public constructor(private readonly mailerService: MailerService) {}
+  public constructor(
+    @InjectQueue(BullMQKey.EMAIL)
+    private readonly emailQueue: Queue,
+  ) {}
 
-  public async sendEmail({ subject, to, message }: EmailOptions) {
-    await this.mailerService.sendMail({
-      to,
-      subject,
-      text: message,
-    });
+  public async sendEmail({ ...data }: EmailOptions) {
+    await this.emailQueue.add('send', { ...data });
   }
 }
