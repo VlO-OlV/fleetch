@@ -10,13 +10,11 @@ export class GoogleAuthStrategy extends PassportStrategy(Strategy, 'google') {
     private userService: UserService,
     configService: ConfigService,
   ) {
-    const clientID = configService.get<string>('google.clientID') as string;
-    const clientSecret = configService.get<string>(
+    const clientID = configService.getOrThrow<string>('google.clientID');
+    const clientSecret = configService.getOrThrow<string>(
       'google.clientSecret',
-    ) as string;
-    const callbackURL = configService.get<string>(
-      'google.callbackURL',
-    ) as string;
+    );
+    const callbackURL = configService.getOrThrow<string>('google.callbackURL');
 
     super({
       clientID,

@@ -19,12 +19,12 @@ export class FileService {
     private configService: ConfigService,
   ) {
     this.s3Client = new S3Client({
-      region: configService.get<string>('aws.region') as string,
+      region: configService.getOrThrow<string>('aws.region'),
       credentials: {
-        accessKeyId: configService.get<string>('aws.accessKey') as string,
-        secretAccessKey: configService.get<string>(
+        accessKeyId: configService.getOrThrow<string>('aws.accessKey'),
+        secretAccessKey: configService.getOrThrow<string>(
           'aws.secretAccessKey',
-        ) as string,
+        ),
       },
     });
   }
@@ -32,7 +32,7 @@ export class FileService {
   public async uploadFile(file: Express.Multer.File): Promise<FileMetadata> {
     const key = `${uuidv4()}-${new Date().toISOString().replaceAll(':', '')}`;
     const params: PutObjectCommandInput = {
-      Bucket: this.configService.get<string>('aws.bucket'),
+      Bucket: this.configService.getOrThrow<string>('aws.bucket'),
       Key: key,
       Body: file.buffer,
       ContentType: file.mimetype,
@@ -69,7 +69,7 @@ export class FileService {
     }
 
     const command = new GetObjectCommand({
-      Bucket: this.configService.get<string>('aws.bucket'),
+      Bucket: this.configService.getOrThrow<string>('aws.bucket'),
       Key: fileMetadata.key,
     });
     const { Body: fileBody } = await this.s3Client.send(command);

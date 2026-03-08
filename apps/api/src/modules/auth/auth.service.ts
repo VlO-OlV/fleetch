@@ -46,7 +46,7 @@ export class AuthService {
       tokenType: TokenType.REFRESH,
     });
 
-    const sessions = this.configService.get<number>('auth.sessions') as number;
+    const sessions = this.configService.getOrThrow<number>('auth.sessions');
 
     const hashedRefreshToken = await this.hashData(refreshToken);
 
@@ -83,8 +83,11 @@ export class AuthService {
       { ...payload },
       {
         expiresIn:
-          expiresIn || this.configService.get<string>(`auth.${tokenType}TTL`),
-        secret: this.configService.get<string>(`auth.${tokenType}Secret`),
+          expiresIn ||
+          this.configService.getOrThrow<string>(`auth.${tokenType}TTL`),
+        secret: this.configService.getOrThrow<string>(
+          `auth.${tokenType}Secret`,
+        ),
       },
     );
   }

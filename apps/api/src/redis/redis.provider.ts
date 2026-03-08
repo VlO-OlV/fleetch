@@ -11,9 +11,9 @@ export const RedisProvider: Provider = {
   inject: [ConfigService],
   useFactory: async (configService: ConfigService) => {
     const options: RedisOptions = {
-      host: configService.get<string>('redis.host'),
-      port: configService.get<number>('redis.port'),
-      password: configService.get<string>('redis.password'),
+      host: configService.getOrThrow<string>('redis.host'),
+      port: configService.getOrThrow<number>('redis.port'),
+      password: configService.getOrThrow<string>('redis.password'),
       retryStrategy: (times) => Math.min(times * 200, 2000),
       maxRetriesPerRequest: 1,
     };
