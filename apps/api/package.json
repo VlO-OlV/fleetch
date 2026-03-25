@@ -15,14 +15,22 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "NODE_ENV=production node dist/main",
     "lint": "eslint . --fix src/**/*.ts",
-    "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prisma-migrate:dev": "dotenv -e .env.development -- npx prisma migrate dev",
-    "prisma-migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy",
-    "prisma-generate": "dotenv -e .env.development -- npx prisma generate",
+    "test:db:prepare": "docker compose --env-file .env.testing -f docker-compose.test.yml up -d && dotenv -e .env.testing -- npx prisma migrate reset --force --skip-seed",
+    "test:db:down": "docker compose --env-file .env.testing -f docker-compose.test.yml down -v",
+    "test:unit": "jest --config jest-unit.config.ts",
+    "test:unit:coverage": "jest --config jest-unit.config.ts --coverage",
+    "test:integration": "npm run test:db:prepare && jest --config jest-integration.config.ts && npm run test:db:down",
+    "test:integration:coverage": "npm run test:db:prepare && jest --config jest-integration.config.ts --coverage && npm run test:db:down",
+    "test:e2e": "npm run test:db:prepare && jest --config jest-e2e.config.ts && npm run test:db:down",
+    "test:e2e:coverage": "npm run test:db:prepare && jest --config jest-e2e.config.ts --coverage && npm run test:db:down",
+    "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
+    "test:coverage": "npm run test:unit:coverage && npm run test:integration:coverage && npm run test:e2e:coverage",
+    "prisma:migrate:dev": "dotenv -e .env.development -- npx prisma migrate dev",
+    "prisma:migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy",
+    "prisma:generate": "dotenv -e .env.development -- npx prisma generate",
     "db:start": "docker compose --env-file .env.development -f docker-compose.yml up",
     "db:stop": "docker compose --env-file .env.development -f docker-compose.yml down"
   },
@@ -94,22 +102,5 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
   }
 }
