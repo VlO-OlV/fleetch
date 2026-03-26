@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import {
   Form,
@@ -22,7 +21,7 @@ import { VerifyCodeDto, verifyCodeSchema } from '@/validation/auth';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/hooks/use-auth';
 import { Route, StorageKey } from '@/lib/consts';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AxiosError } from 'axios';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -33,8 +32,9 @@ export default function VerifyOTPPage() {
   const { verifyPasswordReset, forgotPassword } = useAuth();
   const { t } = useI18n();
 
-  const resetPasswordEmail = localStorage.getItem(
-    StorageKey.RESET_PASSWORD_EMAIL,
+  const resetPasswordEmail = useMemo<string | null>(
+    () => localStorage.getItem(StorageKey.RESET_PASSWORD_EMAIL),
+    [],
   );
 
   const form = useForm<VerifyCodeDto>({
