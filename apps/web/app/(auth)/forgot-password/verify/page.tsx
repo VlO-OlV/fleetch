@@ -33,7 +33,10 @@ export default function VerifyOTPPage() {
   const { t } = useI18n();
 
   const resetPasswordEmail = useMemo<string | null>(
-    () => localStorage.getItem(StorageKey.RESET_PASSWORD_EMAIL),
+    () =>
+      typeof window !== 'undefined'
+        ? localStorage.getItem(StorageKey.RESET_PASSWORD_EMAIL)
+        : null,
     [],
   );
 
