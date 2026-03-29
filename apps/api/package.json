@@ -30,9 +30,11 @@
     "test:coverage": "npm run test:unit:coverage && npm run test:integration:coverage && npm run test:e2e:coverage",
     "prisma:migrate:dev": "dotenv -e .env.development -- npx prisma migrate dev",
     "prisma:migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy",
-    "prisma:generate": "dotenv -e .env.development -- npx prisma generate",
-    "db:start": "docker compose --env-file .env.development -f docker-compose.yml up",
-    "db:stop": "docker compose --env-file .env.development -f docker-compose.yml down"
+    "prisma:generate": "npx prisma generate",
+    "docker:dev:start": "docker compose --env-file .env.development -f docker-compose.test.yml up",
+    "docker:dev:stop": "docker compose --env-file .env.development -f docker-compose.test.yml down",
+    "docker:prod:start": "docker compose --env-file .env.production -f docker-compose.yml up",
+    "docker:prod:stop": "docker compose --env-file .env.production -f docker-compose.yml down"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.932.0",
