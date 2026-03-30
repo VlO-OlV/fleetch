@@ -136,7 +136,7 @@ export class UserService {
     const totalUsers = await this.userRepository.count(where);
 
     return {
-      data: [...users],
+      data: [...users.map((user) => ({ ...user, password: undefined }))],
       totalPages: Math.ceil(totalUsers / limit),
       page,
       limit,
