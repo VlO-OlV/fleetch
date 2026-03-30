@@ -22,6 +22,9 @@ export class ExtraOptionService {
   ) {
     const extraOptions = await this.extraOptionRepository.findMany(
       { ...(where || {}) },
+      undefined,
+      undefined,
+      undefined,
       tx,
     );
 
